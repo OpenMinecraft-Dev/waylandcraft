@@ -1,11 +1,14 @@
 package dev.evvie.waylandcraft;
 
+import java.nio.ByteBuffer;
 import java.util.OptionalInt;
 import java.util.function.Supplier;
 
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.system.MemoryUtil;
 
+import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
@@ -14,11 +17,13 @@ import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Axis;
 
+import dev.evvie.waylandcraft.mixin.NativeImageMixin;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
@@ -61,8 +66,48 @@ public class RenderUtils {
 		drawQuad(camera, OptionalInt.of(tex.getId()), shader, p1, p2, p3, p4, uv1, uv2, uv3, uv4, color, alpha);
 	}
 	
+	private static DynamicTexture testTexture = null;
+	private static ByteBuffer testTextureData = null;
+	public static DynamicTexture getTestTexture(int offset) {
+		int width = 500;
+		int height = 500;
+		
+		if(testTextureData == null) {
+			testTextureData = ByteBuffer.allocateDirect(width * height * 4);
+		}
+		
+		testTextureData.clear();
+		for(int i = 0; i < width * height; i++) {
+			int j = i % width - offset;
+			int k = i / width;
+			// For little endian ARGB 0123, for big endian RGBA 2103
+			testTextureData.put(i * 4 + 2, (byte) (int) ((k / 50) * 50.0f / ((height / 50) * 50.0f) * 255.0f));
+			testTextureData.put(i * 4 + 1, (byte) ((k % 50) * 5));
+			testTextureData.put(i * 4 + 0, (byte) ((j % 50) * 5));
+			testTextureData.put(i * 4 + 3, (byte) 128);
+		}
+		testTextureData.rewind();
+		
+		// TODO:Change format to ARGB
+		// glTexImage2D(GL_TEXTURE_2D, 0, GL33.GL_RGBA8, width, height, 0, GL33.GL_BGRA, GL33.GL_UNSIGNED_INT_8_8_8_8_REV, buf);
+		
+		if(testTexture == null) {
+			NativeImage img = NativeImageMixin.fromPtr(NativeImage.Format.RGBA, width, height, false, MemoryUtil.memAddress(testTextureData));
+			testTexture = new DynamicTexture(img);
+		}
+		else {
+			testTexture.upload();
+		}
+		
+		return testTexture;
+	}
+	
 	public static void drawTexturedQuad(Camera camera, ResourceLocation res, Vec3 p1, Vec3 p2, Vec3 p3, Vec3 p4, Vec2 uv1, Vec2 uv2, Vec2 uv3, Vec2 uv4) {
 		drawQuad(camera, res, GameRenderer::getPositionColorTexShader, p1, p2, p3, p4, uv1, uv2, uv3, uv4, new Vec3(1.0, 1.0, 1.0), 1.0f);
+	}
+	
+	public static void drawTexturedQuad(Camera camera, int tex, Vec3 p1, Vec3 p2, Vec3 p3, Vec3 p4, Vec2 uv1, Vec2 uv2, Vec2 uv3, Vec2 uv4) {
+		drawQuad(camera, OptionalInt.of(tex), GameRenderer::getPositionColorTexShader, p1, p2, p3, p4, uv1, uv2, uv3, uv4, new Vec3(1.0, 1.0, 1.0), 1.0f);
 	}
 	
 	public static void drawSolidQuad(Camera camera, Vec3 p1, Vec3 p2, Vec3 p3, Vec3 p4, float r, float g, float b) {
