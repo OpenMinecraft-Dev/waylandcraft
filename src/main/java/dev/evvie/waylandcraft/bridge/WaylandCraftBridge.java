@@ -29,4 +29,6 @@ public class WaylandCraftBridge {
 	private static native void update(long instance);
 	private static native String socket(long instance);
 	
+	private static native boolean updateToplevel(long instance, long handle);
+	
 }
