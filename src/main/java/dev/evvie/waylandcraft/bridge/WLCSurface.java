@@ -23,7 +23,7 @@ public class WLCSurface {
 	private WLCSurface nextChild = null;
 	
 	// Current protocol id of the parent
-	protected OptionalInt parent_id = OptionalInt.empty();
+	protected OptionalInt parentId = OptionalInt.empty();
 	
 	@Nullable
 	private WLCSurface parent = null;
@@ -33,8 +33,8 @@ public class WLCSurface {
 	private int yoff = 0;
 	
 	// Total calculated offsets
-	public int x_subpos = 0;
-	public int y_subpos = 0;
+	public int xSubpos = 0;
+	public int ySubpos = 0;
 	
 	// Total depth
 	public int depth = 0;
