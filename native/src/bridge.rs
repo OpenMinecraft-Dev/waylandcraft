@@ -24,7 +24,7 @@ use jni::{
 };
 
 pub(crate) struct BridgeState {
-    toplevels: Vec<ToplevelSurface>,
+    toplevels: Vec<Box<ToplevelSurface>>,
     surfaces: Vec<WlSurface>,
 }
 
@@ -98,15 +98,15 @@ fn Java_dev_evvie_waylandcraft_bridge_WaylandCraftBridge_toplevels<'l>(
     let instance = jptr_to_instance(ptr);
 
     for toplevel in instance.state.xdg_state.toplevel_surfaces() {
-        if !instance.bridge.toplevels.contains(toplevel) {
-            instance.bridge.toplevels.push(toplevel.clone());
+        if !instance.bridge.toplevels.iter().any(|b| **b == *toplevel) {
+            instance.bridge.toplevels.push(Box::new(toplevel.clone()));
         }
     }
 
     let toplevels: Vec<jlong> = instance.bridge.toplevels
         .iter_mut()
         .filter(|t| t.alive())
-        .map(|r| r as *mut ToplevelSurface)
+        .map(|r| &mut **r as *mut ToplevelSurface)
         .map(|ptr| (ptr as usize) as jlong)
         .collect();
 
@@ -191,7 +191,7 @@ fn Java_dev_evvie_waylandcraft_bridge_WaylandCraftBridge_toplevelSurface<'l>(
     _class: JClass<'l>,
     ptr: jlong,
     handle: jlong
-) -> jobject {
+) -> jlong {
     let instance = jptr_to_instance(ptr);
     let toplevel: &mut ToplevelSurface = jptr_to_toplevel(handle);
     let surface: &WlSurface = toplevel.wl_surface();
@@ -206,12 +206,5 @@ fn Java_dev_evvie_waylandcraft_bridge_WaylandCraftBridge_toplevelSurface<'l>(
         .unwrap();
     let ptr = ((ptr as *mut WlSurface) as usize) as jlong;
 
-    let ctor = env.get_method_id(WLCSurface_class, "<init>", "(J)V").unwrap();
-    unsafe {
-        env.new_object_unchecked(
-            WLCSurface_class,
-            ctor,
-            &[ jvalue { j: ptr } ]
-        ).unwrap().into_raw()
-    }
+    ptr
 }

@@ -8,6 +8,7 @@ public class WaylandCraftBridge {
 	
 	private long instance;
 	private ArrayList<WLCToplevel> toplevels = new ArrayList<WLCToplevel>();
+	private ArrayList<WLCSurface> surfaces = new ArrayList<WLCSurface>();
 	
 	static {
 		System.loadLibrary("waylandcraft");
@@ -22,16 +23,27 @@ public class WaylandCraftBridge {
 		return new WaylandCraftBridge(handle);
 	}
 	
-	private WLCToplevel getOrCreate(long handle) {
+	private WLCToplevel getOrCreateToplevel(long handle) {
 		for(WLCToplevel toplevel : toplevels) {
 			if(toplevel.getHandle() == handle) return toplevel;
 		}
 		WLCToplevel toplevel = new WLCToplevel(handle);
-		WLCSurface surface = toplevelSurface(this.instance, handle);
+		
+		long surfaceHandle = toplevelSurface(this.instance, handle);
+		WLCSurface surface = getOrCreateSurface(surfaceHandle);
 		toplevel.setSurface(surface);
 		
 		toplevels.add(toplevel);
 		return toplevel;
+	}
+	
+	private WLCSurface getOrCreateSurface(long handle) {
+		for(WLCSurface surface : surfaces) {
+			if(surface.getHandle() == handle) return surface;
+		}
+		WLCSurface surface = new WLCSurface(handle);
+		surfaces.add(surface);
+		return surface;
 	}
 	
 	private void deleteNonExisting(long[] remainingHandles) {
@@ -54,7 +66,7 @@ public class WaylandCraftBridge {
 		deleteNonExisting(toplevel_handles);
 		
 		for(long handle : toplevel_handles) {
-			WLCToplevel toplevel = getOrCreate(handle);
+			WLCToplevel toplevel = getOrCreateToplevel(handle);
 			WLCSurface root = toplevel.getSurfaceTree();
 			updateSurface(root);
 		}
@@ -73,7 +85,7 @@ public class WaylandCraftBridge {
 	private static native String socket(long instance);
 	
 	private static native long[] toplevels(long instance);
-	private static native WLCSurface toplevelSurface(long instance, long handle);
+	private static native long toplevelSurface(long instance, long handle);
 	private static native void updateSurface(WLCSurface surface);
 	
 }
