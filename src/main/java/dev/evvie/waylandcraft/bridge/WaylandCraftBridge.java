@@ -114,6 +114,9 @@ public class WaylandCraftBridge {
 				calculateSubpos(surface);
 			}
 		}
+		
+		// Do client frame callbacks
+		sendFrame(instance);
 	}
 	
 	private void calculateSubpos(WLCSurface surface) {
@@ -156,6 +159,7 @@ public class WaylandCraftBridge {
 	private static native long init();
 	private static native void update(long instance);
 	private static native String socket(long instance);
+	private static native void sendFrame(long instance);
 	
 	private static native long[] toplevels(long instance);
 	private static native long toplevelSurface(long instance, long handle);

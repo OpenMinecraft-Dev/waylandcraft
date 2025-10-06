@@ -213,31 +213,6 @@ pub fn get_time() -> u32 {
     time as u32
 }
 
-fn send_frame(state: &mut WLCState) {
-    let toplevels = state.xdg_state.toplevel_surfaces();
-    for toplevel in toplevels {
-        let toplevel_surface = toplevel.wl_surface();
-
-        with_surface_tree_downward(
-            toplevel_surface,
-            (),
-            |_, _, _| TraversalAction::DoChildren(()),
-            |_, data, _| {
-                let mut attr_guard = data
-                    .cached_state
-                    .get::<SurfaceAttributes>();
-                let attr = attr_guard
-                    .deref_mut()
-                    .current();
-                for c in attr.frame_callbacks.drain(..) {
-                    c.done(get_time());
-                }
-            },
-            |_, _, _| true,
-        );
-    }
-}
-
 fn register_virtual_output(state: &mut WLCState) {
     let output = Output::new(
         "output-0".into(),
@@ -298,8 +273,32 @@ impl<'a> WaylandCraft<'a> {
         let state = &mut self.state;
         let event_loop = &mut self.event_loop;
         event_loop.dispatch(Some(Duration::ZERO), state).unwrap();
-        send_frame(state);
         state.display_handle.flush_clients().unwrap();
+    }
+
+    pub fn send_frame(&mut self) {
+        let toplevels = self.state.xdg_state.toplevel_surfaces();
+        for toplevel in toplevels {
+            let toplevel_surface = toplevel.wl_surface();
+
+            with_surface_tree_downward(
+                toplevel_surface,
+                (),
+                |_, _, _| TraversalAction::DoChildren(()),
+                |_, data, _| {
+                    let mut attr_guard = data
+                        .cached_state
+                        .get::<SurfaceAttributes>();
+                    let attr = attr_guard
+                        .deref_mut()
+                        .current();
+                    for c in attr.frame_callbacks.drain(..) {
+                        c.done(get_time());
+                    }
+                },
+                |_, _, _| true,
+            );
+        }
     }
 }
 

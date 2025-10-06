@@ -95,6 +95,17 @@ fn Java_dev_evvie_waylandcraft_bridge_WaylandCraftBridge_socket<'l>(
     env.new_string(socket).unwrap().into_raw()
 }
 
+#[unsafe(no_mangle)]
+pub extern "system"
+fn Java_dev_evvie_waylandcraft_bridge_WaylandCraftBridge_sendFrame<'l>(
+    _env: JNIEnv<'l>,
+    _class: JClass<'l>,
+    ptr: jlong
+) {
+    let instance = jptr_to_instance(ptr);
+    instance.send_frame();
+}
+
 // Get or insert an element and return its handle
 fn insert_get_handle<T>(vec: &mut Vec<Box<T>>, elem: &T) -> jlong
     where T: Clone + PartialEq
