@@ -1,5 +1,6 @@
 package dev.evvie.waylandcraft;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.OptionalInt;
 import java.util.function.Supplier;
@@ -16,6 +17,7 @@ import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Axis;
 
+import net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallback;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
@@ -28,6 +30,19 @@ import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 
 public class RenderUtils {
+	
+	private static ShaderInstance POSITION_COLOR_TEX;
+	
+	protected static void registerShaders(CoreShaderRegistrationCallback.RegistrationContext context) throws IOException {
+		context.register(new ResourceLocation(WaylandCraft.MOD_ID, "position_color_tex"), DefaultVertexFormat.POSITION_COLOR_TEX, shader -> {
+			POSITION_COLOR_TEX = shader;
+		});
+	}
+	
+	// Similar to the built-in position_color_tex shader but doesn't discard low-alpha fragments
+	public static ShaderInstance getPositionColorTexShader() {
+		return POSITION_COLOR_TEX;
+	}
 	
 	public static Matrix4f cameraTransform(Camera camera) {
 		PoseStack matrixStack = new PoseStack();

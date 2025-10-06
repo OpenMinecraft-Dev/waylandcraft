@@ -13,6 +13,7 @@ import dev.evvie.waylandcraft.bridge.WLCToplevel;
 import dev.evvie.waylandcraft.bridge.WaylandCraftBridge;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -57,6 +58,10 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 			windows.forEach((w) -> w.render(context));
 			
 			sendMotionEvents();
+		});
+		
+		CoreShaderRegistrationCallback.EVENT.register(context -> {
+			RenderUtils.registerShaders(context);
 		});
 	}
 	

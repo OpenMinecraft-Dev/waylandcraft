@@ -133,25 +133,31 @@ public class Window {
 		Tesselator tesselator = Tesselator.getInstance();
 		
 		/* Surface contents */
-		BufferBuilder buffer = tesselator.getBuilder();
-		buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX);
-		buffer.vertex(mat, (float) tl.x, (float) tl.y, (float) tl.z).color(1.0f, 1.0f, 1.0f, 1.0f).uv(crop_x1, crop_y1).endVertex();
-		buffer.vertex(mat, (float) bl.x, (float) bl.y, (float) bl.z).color(1.0f, 1.0f, 1.0f, 1.0f).uv(crop_x1, crop_y2).endVertex();
-		buffer.vertex(mat, (float) br.x, (float) br.y, (float) br.z).color(1.0f, 1.0f, 1.0f, 1.0f).uv(crop_x2, crop_y2).endVertex();
-		buffer.vertex(mat, (float) tr.x, (float) tr.y, (float) tr.z).color(1.0f, 1.0f, 1.0f, 1.0f).uv(crop_x2, crop_y1).endVertex();
+		BufferBuilder vertexBuf = tesselator.getBuilder();
+		vertexBuf.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX);
+		vertexBuf.vertex(mat, (float) tl.x, (float) tl.y, (float) tl.z).color(1.0f, 1.0f, 1.0f, 1.0f).uv(crop_x1, crop_y1).endVertex();
+		vertexBuf.vertex(mat, (float) bl.x, (float) bl.y, (float) bl.z).color(1.0f, 1.0f, 1.0f, 1.0f).uv(crop_x1, crop_y2).endVertex();
+		vertexBuf.vertex(mat, (float) br.x, (float) br.y, (float) br.z).color(1.0f, 1.0f, 1.0f, 1.0f).uv(crop_x2, crop_y2).endVertex();
+		vertexBuf.vertex(mat, (float) tr.x, (float) tr.y, (float) tr.z).color(1.0f, 1.0f, 1.0f, 1.0f).uv(crop_x2, crop_y1).endVertex();
 		
-		RenderSystem.setShader(GameRenderer::getPositionColorTexShader);
+		if(buf.getFormat() == BufferTexture.FORMAT_XRGB8888) {
+			RenderSystem.setShader(RenderUtils::getPositionColorTexShader);
+		}
+		else if(buf.getFormat() == BufferTexture.FORMAT_ARGB8888) {
+			RenderSystem.setShader(GameRenderer::getPositionColorTexShader);
+		}
+		
 		RenderSystem.setShaderTexture(0, buf.getId());
 		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 		tesselator.end();
 		
 		/* Surface backside */
-		buffer = tesselator.getBuilder();
-		buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-		buffer.vertex(mat, (float) tl.x, (float) tl.y, (float) tl.z).color(0.0f, 0.0f, 0.0f, 1.0f).endVertex();
-		buffer.vertex(mat, (float) tr.x, (float) tr.y, (float) tr.z).color(0.0f, 0.0f, 0.0f, 1.0f).endVertex();
-		buffer.vertex(mat, (float) br.x, (float) br.y, (float) br.z).color(0.0f, 0.0f, 0.0f, 1.0f).endVertex();
-		buffer.vertex(mat, (float) bl.x, (float) bl.y, (float) bl.z).color(0.0f, 0.0f, 0.0f, 1.0f).endVertex();
+		vertexBuf = tesselator.getBuilder();
+		vertexBuf.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+		vertexBuf.vertex(mat, (float) tl.x, (float) tl.y, (float) tl.z).color(0.0f, 0.0f, 0.0f, 1.0f).endVertex();
+		vertexBuf.vertex(mat, (float) tr.x, (float) tr.y, (float) tr.z).color(0.0f, 0.0f, 0.0f, 1.0f).endVertex();
+		vertexBuf.vertex(mat, (float) br.x, (float) br.y, (float) br.z).color(0.0f, 0.0f, 0.0f, 1.0f).endVertex();
+		vertexBuf.vertex(mat, (float) bl.x, (float) bl.y, (float) bl.z).color(0.0f, 0.0f, 0.0f, 1.0f).endVertex();
 		
 		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
