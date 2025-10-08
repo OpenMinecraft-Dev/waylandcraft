@@ -45,6 +45,7 @@ use smithay::{
         viewporter::{
             ViewporterState,
         },
+        single_pixel_buffer::SinglePixelBufferState,
     },
     output::{self, Output, PhysicalProperties, Subpixel},
     input::{
@@ -54,6 +55,7 @@ use smithay::{
     utils::Serial,
     delegate_compositor, delegate_shm, delegate_output, delegate_seat,
     delegate_xdg_shell, delegate_data_device, delegate_viewporter,
+    delegate_single_pixel_buffer,
 };
 
 mod bridge;
@@ -75,6 +77,7 @@ pub struct WLCState {
     pub xdg_state: XdgShellState,
     pub data_device_state: DataDeviceState,
     pub viewporter_state: ViewporterState,
+    pub single_pixel_buffer_state: SinglePixelBufferState,
     pub seat: Seat<Self>,
 }
 
@@ -92,6 +95,8 @@ impl WLCState {
         let xdg_state = XdgShellState::new::<WLCState>(&disp);
         let data_device_state = DataDeviceState::new::<WLCState>(&disp);
         let viewporter_state = ViewporterState::new::<WLCState>(&disp);
+        let single_pixel_buffer_state =
+            SinglePixelBufferState::new::<WLCState>(&disp);
 
         Self {
             display_handle: disp.clone(),
@@ -102,6 +107,7 @@ impl WLCState {
             xdg_state,
             data_device_state,
             viewporter_state,
+            single_pixel_buffer_state,
             seat,
         }
     }
@@ -314,3 +320,4 @@ delegate_seat!(WLCState);
 delegate_xdg_shell!(WLCState);
 delegate_data_device!(WLCState);
 delegate_viewporter!(WLCState);
+delegate_single_pixel_buffer!(WLCState);

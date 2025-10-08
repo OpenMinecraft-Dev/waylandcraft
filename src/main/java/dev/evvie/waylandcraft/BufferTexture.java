@@ -1,5 +1,7 @@
 package dev.evvie.waylandcraft;
 
+import java.nio.ByteBuffer;
+
 import org.lwjgl.opengl.GL33;
 
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -57,6 +59,54 @@ public abstract class BufferTexture {
 			GlStateManager._pixelStore(GL33.GL_UNPACK_SKIP_ROWS, 0);
 			GlStateManager._pixelStore(GL33.GL_UNPACK_ALIGNMENT, 4);
 			GlStateManager._texSubImage2D(GL33.GL_TEXTURE_2D, 0, 0, 0, width, height, GL33.GL_BGRA, GL33.GL_UNSIGNED_INT_8_8_8_8_REV, this.ptr);
+		}
+		
+	}
+	
+	public static class SinglePixelBufferTexture extends BufferTexture {
+		
+		public final byte r;
+		public final byte g;
+		public final byte b;
+		public final byte a;
+		
+		public SinglePixelBufferTexture(byte r, byte g, byte b, byte a) {
+			super(1, 1, BufferTexture.FORMAT_ARGB8888);
+			this.r = r;
+			this.g = g;
+			this.b = b;
+			this.a = a;
+			
+			init();
+		}
+		
+		private void init() {
+			GlStateManager._bindTexture(this.id);
+			GlStateManager._texParameter(GL33.GL_TEXTURE_2D, GL33.GL_TEXTURE_MAX_LEVEL, 0);
+			GlStateManager._texParameter(GL33.GL_TEXTURE_2D, GL33.GL_TEXTURE_MIN_LOD, 0);
+			GlStateManager._texParameter(GL33.GL_TEXTURE_2D, GL33.GL_TEXTURE_MAX_LOD, 0);
+			GlStateManager._texParameter(GL33.GL_TEXTURE_2D, GL33.GL_TEXTURE_LOD_BIAS, 0.0f);
+			GlStateManager._texImage2D(GL33.GL_TEXTURE_2D, 0, GL33.GL_RGBA8, width, height, 0, GL33.GL_BGRA, GL33.GL_UNSIGNED_INT_8_8_8_8_REV, null);
+			
+			this.upload();
+		}
+		
+		private void upload() {
+			GlStateManager._bindTexture(this.id);
+			GlStateManager._texParameter(GL33.GL_TEXTURE_2D, GL33.GL_TEXTURE_MIN_FILTER, GL33.GL_NEAREST);
+			GlStateManager._texParameter(GL33.GL_TEXTURE_2D, GL33.GL_TEXTURE_MAG_FILTER, GL33.GL_NEAREST);
+			GlStateManager._pixelStore(GL33.GL_UNPACK_ROW_LENGTH, 0);
+			GlStateManager._pixelStore(GL33.GL_UNPACK_SKIP_PIXELS, 0);
+			GlStateManager._pixelStore(GL33.GL_UNPACK_SKIP_ROWS, 0);
+			GlStateManager._pixelStore(GL33.GL_UNPACK_ALIGNMENT, 4);
+			
+			ByteBuffer buf = ByteBuffer.allocateDirect(4);
+			buf.put(b);
+			buf.put(g);
+			buf.put(r);
+			buf.put(a);
+			buf.rewind();
+			GL33.glTexSubImage2D(GL33.GL_TEXTURE_2D, 0, 0, 0, width, height, GL33.GL_BGRA, GL33.GL_UNSIGNED_INT_8_8_8_8_REV, buf);
 		}
 		
 	}

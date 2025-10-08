@@ -5,11 +5,12 @@ use smithay::{
     wayland::{
         shell::xdg::ToplevelSurface,
         compositor::{
-            SurfaceAttributes, BufferAssignment, with_states,
+            SurfaceAttributes, BufferAssignment, with_states, SurfaceData,
             with_surface_tree_upward, TraversalAction, SubsurfaceCachedState
         },
-        shm::with_buffer_contents,
+        shm::{self, with_buffer_contents},
         viewporter::{ViewportCachedState, ensure_viewport_valid},
+        single_pixel_buffer::get_single_pixel_buffer,
     },
     input::pointer::{MotionEvent, ButtonEvent},
     utils::{Point, Logical, SERIAL_COUNTER, Size},
@@ -18,6 +19,7 @@ use smithay::{
         wayland_server::{
             protocol::{
                 wl_surface::WlSurface,
+                wl_buffer::WlBuffer,
             },
         },
     },
@@ -25,7 +27,8 @@ use smithay::{
 use jni::{
     objects::{JClass, JObject, JValue},
     sys::{
-        jlong, jstring, jarray, jsize, jint, jvalue, jdouble, jboolean, jobject
+        jlong, jstring, jarray, jsize, jint, jvalue, jdouble, jboolean, jobject,
+        jbyte
     },
     signature::{ReturnType, Primitive},
     JNIEnv,
@@ -191,6 +194,97 @@ fn jptr_to_wlsurface(ptr: jlong) -> &'static mut WlSurface {
     unsafe { &mut *ptr }
 }
 
+enum BufferAttachResult {
+    Success,
+    Error,
+    NotManaged,
+}
+
+impl BufferAttachResult {
+    fn not_managed(&self) -> bool {
+        match self {
+            Self::NotManaged => true,
+            _ => false,
+        }
+    }
+
+    fn success(&self) -> bool {
+        match self {
+            Self::Success => true,
+            _ => false,
+        }
+    }
+}
+
+fn try_attach_shm(
+    env: &mut JNIEnv,
+    obj: &JObject,
+    buf: &WlBuffer,
+    surf_data: &SurfaceData
+) -> BufferAttachResult {
+    let r = with_buffer_contents(buf, |ptr, _len, metadata| {
+        let width = metadata.width as jint;
+        let height = metadata.height as jint;
+        let format = (metadata.format as u32) as jint;
+        ensure_viewport_valid(surf_data, Size::new(width, height));
+
+        unsafe {
+            let ptr = ptr.offset(metadata.offset as isize);
+            let jptr = (ptr as usize) as jlong;
+            env.call_method_unchecked(
+                obj,
+                (WLCSurface_class, "attachShmBuffer", "(JIII)V"),
+                ReturnType::Primitive(Primitive::Void),
+                &[
+                    jvalue { j: jptr },
+                    jvalue { i: width },
+                    jvalue { i: height },
+                    jvalue { i: format }
+                ]
+            ).unwrap();
+        }
+    });
+
+    match r {
+        Ok(_) => BufferAttachResult::Success,
+        Err(shm::BufferAccessError::NotManaged) =>
+            BufferAttachResult::NotManaged,
+        Err(_) => BufferAttachResult::Error,
+    }
+}
+
+fn try_attach_single_pixel(
+    env: &mut JNIEnv,
+    obj: &JObject,
+    buf: &WlBuffer,
+    surf_data: &SurfaceData
+) -> BufferAttachResult {
+    let pix = match get_single_pixel_buffer(buf) {
+        Ok(p) => p,
+        Err(_) => {return BufferAttachResult::NotManaged;},
+    };
+
+    ensure_viewport_valid(surf_data, Size::new(1, 1));
+
+    let [r, g, b, a] = pix.rgba8888();
+
+    unsafe {
+        env.call_method_unchecked(
+            obj,
+            (WLCSurface_class, "attachSinglePixelBuffer", "(BBBB)V"),
+            ReturnType::Primitive(Primitive::Void),
+            &[
+                jvalue { b: r as jbyte },
+                jvalue { b: g as jbyte },
+                jvalue { b: b as jbyte },
+                jvalue { b: a as jbyte }
+            ]
+        ).unwrap();
+    }
+
+    BufferAttachResult::Success
+}
+
 #[unsafe(no_mangle)]
 pub extern "system"
 fn Java_dev_evvie_waylandcraft_bridge_WaylandCraftBridge_updateSurfaceData<'l>(
@@ -222,29 +316,15 @@ fn Java_dev_evvie_waylandcraft_bridge_WaylandCraftBridge_updateSurfaceData<'l>(
             None
         };
         if let Some(buf) = maybe_buf {
-            let _ = with_buffer_contents(buf, |ptr, _len, metadata| {
-                let width = metadata.width as jint;
-                let height = metadata.height as jint;
-                let format = (metadata.format as u32) as jint;
-                ensure_viewport_valid(data, Size::new(width, height));
+            // First try shm
+            let mut r = try_attach_shm(&mut env, &obj, &buf, &data);
 
-                unsafe {
-                    let ptr = ptr.offset(metadata.offset as isize);
-                    let jptr = (ptr as usize) as jlong;
-                    let sig = "(JIII)V";
-                    env.call_method_unchecked(
-                        &obj,
-                        (WLCSurface_class, "attachShmBuffer", sig),
-                        ReturnType::Primitive(Primitive::Void),
-                        &[
-                            jvalue { j: jptr },
-                            jvalue { i: width },
-                            jvalue { i: height },
-                            jvalue { i: format }
-                        ]
-                    ).unwrap();
-                }
-            });
+            // If not managed by shm, try single pixel
+            if r.not_managed() {
+                r = try_attach_single_pixel(&mut env, &obj, &buf, &data);
+            }
+
+            // Done with buffer attachment
             buf.release();
             attr.buffer = None;
         }

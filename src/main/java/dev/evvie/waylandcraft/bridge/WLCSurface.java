@@ -4,6 +4,7 @@ import org.jetbrains.annotations.Nullable;
 
 import dev.evvie.waylandcraft.BufferTexture;
 import dev.evvie.waylandcraft.BufferTexture.ShmBufferTexture;
+import dev.evvie.waylandcraft.BufferTexture.SinglePixelBufferTexture;
 
 public class WLCSurface {
 	
@@ -70,6 +71,17 @@ public class WLCSurface {
 		this.buffer = new ShmBufferTexture(ptr, width, height, format);
 		this.width = width;
 		this.height = height;
+	}
+	
+	// Attach a single pixel buffer
+	// The surface width and height are reset to 1.
+	protected void attachSinglePixelBuffer(byte r, byte g, byte b, byte a) {
+		if(this.buffer != null) {
+			this.buffer.release();
+		}
+		this.buffer = new SinglePixelBufferTexture(r, g, b, a);
+		this.width = 1;
+		this.height = 1;
 	}
 	
 	// Set viewport source dimensions
