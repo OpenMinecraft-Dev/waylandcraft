@@ -105,6 +105,9 @@ public class Window {
 		origin = origin.add(normal.scale(depth * 0.0001));
 		
 		BufferTexture buf = surface.getBuffer();
+		
+		//WaylandCraft.LOGGER.info("SURFACE D: " + depth + ", X: " + surface.xSubpos + ", Y: " + surface.ySubpos + ", W: " + surface.width() + ", H: " + surface.height() + ", BUF: " + buf);
+		
 		if(buf == null) return;
 		
 		Vec3 tl = origin;
