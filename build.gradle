@@ -63,6 +63,7 @@ loom {
 	runs {
 		client {
 			environmentVariable("LD_LIBRARY_PATH", "../native/target/debug/")
+			environmentVariable("__GL_THREADED_OPTIMIZATIONS", "0")
 		}
 	}
 }
