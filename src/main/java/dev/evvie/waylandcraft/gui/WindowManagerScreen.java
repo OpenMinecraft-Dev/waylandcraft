@@ -23,6 +23,7 @@ import dev.evvie.waylandcraft.bridge.WLCSurface.ViewportSource;
 import dev.evvie.waylandcraft.bridge.WLCToplevel;
 import dev.evvie.waylandcraft.bridge.WaylandCraftBridge;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
@@ -30,7 +31,10 @@ import net.minecraft.network.chat.Component;
 public class WindowManagerScreen extends Screen {
 	
 	private WaylandCraft wlc;
+	
 	private SelectorWidget selector;
+	private Button grabButton;
+	private Button hideButton;
 	
 	private final int margin = 5;
 	private final int topMargin = 50;
@@ -59,7 +63,25 @@ public class WindowManagerScreen extends Screen {
 		selector = new SelectorWidget(margin, topMargin - 11, 50, 12, 5);
 		addRenderableWidget(selector);
 		
+		grabButton = Button.builder(Component.literal("Grab"), this::onGrabPressed).pos(width - 85, 5).size(80, 17).build();
+		hideButton = Button.builder(Component.literal("Hide"), this::onHidePressed).pos(width - 85, 25).size(80, 17).build();
+		addRenderableWidget(grabButton);
+		addRenderableWidget(hideButton);
+		
 		wlc.bridge.keyboardReset();
+	}
+	
+	private void onGrabPressed(Button button) {
+		if(focused == null) return;
+		
+		wlc.grabbedWindow = wlc.getOrCreateWindow(focused);
+		this.onClose();
+	}
+	
+	private void onHidePressed(Button button) {
+		if(focused == null) return;
+		
+		wlc.windows.removeIf((w) -> w.backing == focused);
 	}
 	
 	@Override
@@ -98,6 +120,15 @@ public class WindowManagerScreen extends Screen {
 			wlc.bridge.keyboardReset();
 			if(focused != null) wlc.bridge.focusSurface(focused.getSurfaceTree());
 			else wlc.bridge.focusSurface(null);
+		}
+		
+		if(focused != null) {
+			grabButton.active = true;
+			hideButton.active = wlc.hasWindowFor(focused);
+		}
+		else {
+			grabButton.active = false;
+			hideButton.active = false;
 		}
 	}
 	

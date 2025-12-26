@@ -11,6 +11,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import dev.evvie.waylandcraft.Window.WindowHitResult;
+import dev.evvie.waylandcraft.bridge.WLCAbstractWindow;
 import dev.evvie.waylandcraft.bridge.WLCPopup;
 import dev.evvie.waylandcraft.bridge.WLCSurface;
 import dev.evvie.waylandcraft.bridge.WLCToplevel;
@@ -23,6 +24,7 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.minecraft.client.Camera;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -40,6 +42,7 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 	public ArrayList<Window> windows = new ArrayList<Window>();
 	public WindowHitResult hitResult = null;
 	public boolean keyboardCaptured = false;
+	public Window grabbedWindow = null;
 	
 	public KeyMapping keyOpenScreen;
 	
@@ -63,21 +66,29 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 			}
 			bridge.update();
 			
-			for(WLCToplevel toplevel : bridge.getToplevels()) {
-				if(!windows.stream().anyMatch((w) -> w.backing == toplevel)) {
-					windows.add(new Window(toplevel));
-				}
-			}
 			for(WLCPopup popup : bridge.getPopups()) {
-				if(!windows.stream().anyMatch((w) -> w.backing == popup)) {
+				WLCAbstractWindow root = popup;
+				while((root = ((WLCPopup) root).getParent()) instanceof WLCPopup);
+				
+				WLCToplevel toplevel = (WLCToplevel) root;
+				boolean toplevelHasWindow = hasWindowFor(toplevel);
+				boolean popupHasWindow = hasWindowFor(popup);
+				if(toplevelHasWindow && !popupHasWindow) {
 					windows.add(new Window(popup));
 				}
+				else if(!toplevelHasWindow && popupHasWindow) {
+					windows.removeIf((w) -> w.backing == popup);
+				}
 			}
-			windows.removeIf((w) -> !w.isAlive());
 			
 			for(WLCPopup popup : bridge.getPopups()) {
 				anchorToParent(popup);
 			}
+			
+			windows.removeIf((w) -> !w.isAlive());
+			
+			if(grabbedWindow != null && !grabbedWindow.isAlive()) grabbedWindow = null;
+			if(grabbedWindow != null) anchorToCamera(grabbedWindow, context.camera());
 			
 			RenderSystem.enableDepthTest();
 			windows.forEach((w) -> w.render(context));
@@ -106,10 +117,28 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 		});
 	}
 	
+	public Window getOrCreateWindow(WLCToplevel toplevel) {
+		Window window = windows.stream().filter((w) -> w.backing == toplevel).findAny().orElse(null);
+		if(window != null) return window;
+		
+		window = new Window(toplevel);
+		windows.add(window);
+		
+		return window;
+	}
+	
+	public boolean hasWindowFor(WLCAbstractWindow backing) {
+		return windows.stream().anyMatch((w) -> w.backing == backing);
+	}
+	
 	/* Handle mouse button input
 	 * Returns true when the mouse button action has been consumed
 	 */
 	public boolean onButtonPress(long windowHandle, int button, int action, int modifiers) {
+		if(grabbedWindow != null) {
+			grabbedWindow = null;
+			return true;
+		}
 		if(hitResult == null) return false;
 		
 		Window window = hitResult.target;
@@ -133,6 +162,7 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 	 * Returns true when the mouse scroll action has been consumed
 	 */
 	public boolean onScroll(long windowHandle, double scrollX, double scrollY) {
+		if(grabbedWindow != null) return true;
 		if(hitResult == null) return false;
 		
 		Window window = hitResult.target;
@@ -215,6 +245,13 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 		window.moveOrigin(parent.localToWorld(x, y, 0.05));
 	}
 	
+	private void anchorToCamera(Window window, Camera camera) {
+		Vec3 look = new Vec3(camera.getLookVector());
+		Vec3 up = new Vec3(camera.getUpVector());
+		window.pivot = camera.getPosition().add(look.scale(2));
+		window.rotate(look.reverse(), up.reverse());
+	}
+	
 	private boolean inScreen = false;
 	
 	private void sendMotionEvents() {
@@ -226,6 +263,11 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 		
 		// Don't send hitResult-based pointer updates when inside a screen
 		if(inScreen) return;
+		
+		if(grabbedWindow != null) {
+			bridge.sendMotionOutside();
+			return;
+		}
 		
 		if(hitResult != null) {
 			Vec3 coords = hitResult.surfaceLocal;

@@ -28,7 +28,7 @@ public class Window {
 	public final WLCAbstractWindow backing;
 	
 	// World position of window
-	public Vec3 pivot = new Vec3(-250, 65, -500);
+	public Vec3 pivot = new Vec3(0, 0, 0);
 	
 	// Window facing direction normal
 	private Vec3 normal = new Vec3(0, 0, 1);
