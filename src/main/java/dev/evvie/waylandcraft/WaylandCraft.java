@@ -125,16 +125,22 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 			int yoff = 10 + font.lineHeight;
 			for(WLCToplevel toplevel : WaylandCraft.instance.bridge.getToplevels()) {
 				String appID = toplevel.appID;
-				if(appID == null) continue;
 				
-				String name = xdgManager.getName(appID);
-				if(name == null) name = appID;
+				String name = "<unknown app>";
+				if(appID != null) {
+					name = appID;
+					
+					String xdgName = xdgManager.getName(appID);
+					if(xdgName != null) name = xdgName;
+				}
 				
 				int x = context.guiWidth() - font.width(name) - 10;
 				context.drawString(font, name, x, yoff, Color.white.getRGB(), false);
 				
-				IconData icon = xdgManager.getIcon(appID);
-				if(icon != null) renderBuffer(context, icon.texture, x - font.lineHeight - 2, yoff, font.lineHeight, font.lineHeight);
+				if(appID != null) {
+					IconData icon = xdgManager.getIcon(appID);
+					if(icon != null) renderBuffer(context, icon.texture, x - font.lineHeight - 2, yoff, font.lineHeight, font.lineHeight);
+				}
 				
 				yoff += font.lineHeight;
 			}
