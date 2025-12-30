@@ -126,8 +126,6 @@ public class WindowManagerScreen extends Screen {
 		resizeInitialWidth = resizeWidth = focused.geometry.width();
 		resizeInitialHeight = resizeHeight = focused.geometry.height();
 		resizeInitialX = resizeInitialY = -1;
-		
-		focused = null;
 	}
 	
 	private void exitResizeMode() {
@@ -168,17 +166,20 @@ public class WindowManagerScreen extends Screen {
 			}
 		}
 		
-		if(resizeMode && current == resizeToplevel) {
-			setFocused(null);
+		if(resizeMode) {
 			wlc.bridge.focusSurface(null);
+			focused = null;
+			setFocused(null); // Unfocus any widgets too
+			
+			if(current != resizeToplevel) {
+				exitResizeMode();
+			}
 		}
-		else if(resizeMode) {
-			exitResizeMode();
-		}
-		else if(current != focused) {
+		else if(focused != current) {
 			focused = current;
 			
-			wlc.bridge.keyboardReset();
+			WaylandCraft.LOGGER.info("Changing focus to " + focused);
+			
 			if(focused != null) wlc.bridge.focusSurface(focused.getSurfaceTree());
 			else wlc.bridge.focusSurface(null);
 		}
