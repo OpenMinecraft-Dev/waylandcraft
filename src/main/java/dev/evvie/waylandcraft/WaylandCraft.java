@@ -19,6 +19,7 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import dev.evvie.waylandcraft.Window.WindowHitResult;
 import dev.evvie.waylandcraft.XDGDesktopManager.IconData;
 import dev.evvie.waylandcraft.bridge.WLCAbstractWindow;
+import dev.evvie.waylandcraft.bridge.WLCAbstractWindow.SurfaceGeometry;
 import dev.evvie.waylandcraft.bridge.WLCPopup;
 import dev.evvie.waylandcraft.bridge.WLCSurface;
 import dev.evvie.waylandcraft.bridge.WLCToplevel;
@@ -98,9 +99,33 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 			
 			windows.removeIf((w) -> !w.isAlive());
 			
-			// Hide all windows that were minimized and unset minimized state
-			windows.removeIf((w) -> w.backing instanceof WLCToplevel && ((WLCToplevel) w.backing).minimized);
-			Stream.of(bridge.getToplevels()).forEach((t) -> t.minimized = false);
+			// Hide all windows that were minimized and unset minimize requested state
+			windows.removeIf((w) -> w.backing instanceof WLCToplevel && ((WLCToplevel) w.backing).minimizeRequest);
+			Stream.of(bridge.getToplevels()).forEach((t) -> t.minimizeRequest = false);
+			
+			// Handle any maximize or unmaximize requests
+			for(WLCToplevel toplevel : bridge.getToplevels()) {
+				if(toplevel.maximizeRequest && toplevel.unmaximizeRequest) {
+					// Both requests shouldn't happen at the same time
+					toplevel.maximizeRestoreGeometry = null;
+				}
+				else if(toplevel.maximizeRequest) {
+					// Maximize toplevel and store its old geometry
+					toplevel.maximizeRestoreGeometry = toplevel.geometry;
+					bridge.maximizeToplevel(toplevel);
+				}
+				else if(toplevel.unmaximizeRequest) {
+					// Unmaximize toplevel and attempt to restore old geometry
+					SurfaceGeometry newGeometry = toplevel.maximizeRestoreGeometry;
+					if(newGeometry == null) newGeometry = toplevel.geometry;
+					
+					// resizeToplevel also unsets the maximize flag
+					bridge.resizeToplevel(toplevel, newGeometry.width(), newGeometry.height());
+					toplevel.maximizeRestoreGeometry = null;
+				}
+				
+				toplevel.maximizeRequest = toplevel.unmaximizeRequest = false;
+			}
 			
 			if(grabbedWindow != null && !grabbedWindow.isAlive()) grabbedWindow = null;
 			if(grabbedWindow != null) anchorToCamera(grabbedWindow, context.camera());

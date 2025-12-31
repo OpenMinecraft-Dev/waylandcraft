@@ -90,6 +90,8 @@ pub struct WLCState {
     pub dmabuf_global: DmabufGlobal,
     pub seat: Seat<Self>,
     pub minimized_toplevels: Vec<ToplevelSurface>,
+    pub maximized_toplevels: Vec<ToplevelSurface>,
+    pub unmaximized_toplevels: Vec<ToplevelSurface>,
 }
 
 impl WLCState {
@@ -126,6 +128,8 @@ impl WLCState {
             dmabuf_global,
             seat,
             minimized_toplevels: vec![],
+            maximized_toplevels: vec![],
+            unmaximized_toplevels: vec![],
         }
     }
 }
@@ -241,6 +245,14 @@ impl XdgShellHandler for WLCState {
 
     fn minimize_request(&mut self, surface: ToplevelSurface) {
         self.minimized_toplevels.push(surface);
+    }
+
+    fn maximize_request(&mut self, surface: ToplevelSurface) {
+        self.maximized_toplevels.push(surface);
+    }
+
+    fn unmaximize_request(&mut self, surface: ToplevelSurface) {
+        self.unmaximized_toplevels.push(surface);
     }
 }
 

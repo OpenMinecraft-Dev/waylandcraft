@@ -173,6 +173,8 @@ public class WaylandCraftBridge {
 		deleteNonExistingPopups(popupHandles);
 		
 		long[] minimizedToplevels = minimized(instance);
+		long[] maximizedToplevels = maximized(instance);
+		long[] unmaximizedToplevels = unmaximized(instance);
 		
 		// Reset surface visited state
 		for(WLCSurface surface : surfaces) {
@@ -180,16 +182,19 @@ public class WaylandCraftBridge {
 		}
 		
 		// Create new toplevels when necessary
-		// Update surface tree geometry of all toplevels
+		// Update surface tree geometry and properties of all toplevels
 		for(long handle : toplevelHandles) {
 			WLCToplevel toplevel = getOrCreateToplevel(handle);
 			WLCSurface root = toplevel.getSurfaceTree();
 			toplevel.lastChild = updateSurfaceTree(root);
+			
 			updateGeometry(toplevel);
 			toplevel.title = toplevelTitle(toplevel.getHandle());
 			toplevel.appID = toplevelAppID(toplevel.getHandle());
 			
-			if(ArrayUtils.contains(minimizedToplevels, handle)) toplevel.minimized = true;
+			if(ArrayUtils.contains(minimizedToplevels, handle)) toplevel.minimizeRequest = true;
+			if(ArrayUtils.contains(maximizedToplevels, handle)) toplevel.maximizeRequest = true;
+			if(ArrayUtils.contains(unmaximizedToplevels, handle)) toplevel.unmaximizeRequest = true;
 		}
 		
 		// Create new popups when necessary
@@ -324,12 +329,15 @@ public class WaylandCraftBridge {
 	}
 	
 	public void resizeToplevelInteractive(WLCToplevel toplevel, int width, int height) {
-		toplevelResizeInt(toplevel.getHandle(), width, height, false);
+		toplevelResize(toplevel.getHandle(), width, height, true);
 	}
 	
-	public void resizeToplevelInteractiveStop(WLCToplevel toplevel, int width, int height) {
-		System.out.println("resizeToplevelInteractiveStop " + width + ", " + height);
-		toplevelResizeInt(toplevel.getHandle(), width, height, true);
+	public void resizeToplevel(WLCToplevel toplevel, int width, int height) {
+		toplevelResize(toplevel.getHandle(), width, height, false);
+	}
+	
+	public void maximizeToplevel(WLCToplevel toplevel) {
+		toplevelMaximize(toplevel.getHandle());
 	}
 	
 	private static native long init(long glfwGetProcAddress, long eglDisplay);
@@ -343,10 +351,15 @@ public class WaylandCraftBridge {
 	private static native long toplevelSurface(long instance, long handle);
 	private static native String toplevelTitle(long handle);
 	private static native String toplevelAppID(long handle);
-	// Interactive toplevel resize
-	private static native void toplevelResizeInt(long handle, int width, int height, boolean stop);
+	// Resize toplevel
+	private static native void toplevelResize(long handle, int width, int height, boolean interactive);
 	// Collect all toplevels that have sent a minimize request and clear the list
 	private static native long[] minimized(long instance);
+	// Collect all toplevels that have sent a maximize request and clear the list
+	private static native long[] maximized(long instance);
+	// Collect all toplevels that have sent an unmaximize request and clear the list
+	private static native long[] unmaximized(long instance);
+	private static native void toplevelMaximize(long handle);
 	
 	private static native long[] popups(long instance);
 	private static native long popupSurface(long instance, long handle);

@@ -125,7 +125,7 @@ public class WindowManagerScreen extends Screen {
 	}
 	
 	private void exitResizeMode() {
-		wlc.bridge.resizeToplevelInteractiveStop(resizeToplevel, resizeWidth, resizeHeight);
+		wlc.bridge.resizeToplevel(resizeToplevel, resizeWidth, resizeHeight);
 		
 		GLFW.glfwSetInputMode(Minecraft.getInstance().getWindow().getWindow(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
 		
