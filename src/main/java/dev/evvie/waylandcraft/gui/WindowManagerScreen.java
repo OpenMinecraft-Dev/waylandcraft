@@ -64,7 +64,7 @@ public class WindowManagerScreen extends Screen {
 		areaHeight = height - margin - topMargin;
 		scale = rootHeight / (float) areaHeight;
 		
-		selector = new SelectorWidget<WLCToplevel>(margin, topMargin - 14, areaWidth, 15) {
+		selector = new SelectorWidget<WLCToplevel>(margin, topMargin - 15, areaWidth, 15) {
 			@Override
 			public Component titleForElement(WLCToplevel element) {
 				return Component.literal(Optional.ofNullable(element.title).or(() -> Optional.ofNullable(element.appID)).orElse(""));
@@ -169,11 +169,11 @@ public class WindowManagerScreen extends Screen {
 	public void render(GuiGraphics context, int i, int j, float f) {
 		super.render(context, i, j, f);
 		
-		context.hLine(margin, width - margin, topMargin, Color.white.getRGB());
+		context.hLine(margin, width - margin, topMargin - 1, Color.white.getRGB());
 		context.hLine(margin, width - margin, height - margin, Color.white.getRGB());
 		
-		context.vLine(margin, topMargin, height - margin, Color.white.getRGB());
-		context.vLine(width - margin, topMargin, height - margin, Color.white.getRGB());
+		context.vLine(margin, topMargin - 1, height - margin, Color.white.getRGB());
+		context.vLine(width - margin, topMargin - 1, height - margin, Color.white.getRGB());
 		
 		WLCToplevel[] toplevels = wlc.bridge.getToplevels();
 		selector.setEntries(toplevels);
