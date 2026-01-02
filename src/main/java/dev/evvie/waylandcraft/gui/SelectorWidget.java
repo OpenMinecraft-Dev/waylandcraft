@@ -24,14 +24,15 @@ public abstract class SelectorWidget<T> extends AbstractWidget {
 	// Currently selected element, should always be either null or an element assigned to a button
 	private T selected = null;
 	
-	private int unrestrictedButtonWidth;
-	
 	@SuppressWarnings("unchecked")
 	public SelectorWidget(int x, int y, int width, int height) {
 		super(x, y, width, height, Component.empty());
 		
-		unrestrictedButtonWidth = width / 5;
 		setEntries((T[]) new Object[0]);
+	}
+	
+	private int unrestrictedButtonWidth() {
+		return getWidth() / 5;
 	}
 	
 	public void setEntries(T[] entries) {
@@ -42,13 +43,13 @@ public abstract class SelectorWidget<T> extends AbstractWidget {
 		int height = getHeight();
 		
 		for(int i = 0; i < entries.length; i++) {
-			SelectorButton<T> button = new SelectorButton<T>(this, x, y, unrestrictedButtonWidth, height);
+			SelectorButton<T> button = new SelectorButton<T>(this, x, y, unrestrictedButtonWidth(), height);
 			button.element = entries[i];
 			buttons.add(button);
 		}
 		
 		if(entries.length == 0) {
-			SelectorButton<T> button = new SelectorButton<T>(this, x, y, unrestrictedButtonWidth, height);
+			SelectorButton<T> button = new SelectorButton<T>(this, x, y, unrestrictedButtonWidth(), height);
 			button.element = null;
 			buttons.add(button);
 		}
@@ -58,10 +59,15 @@ public abstract class SelectorWidget<T> extends AbstractWidget {
 	}
 	
 	private void arrangeButtons() {
-		int buttonWidth = unrestrictedButtonWidth;
 		int x = getX();
 		int y = getY();
+		int width = getWidth();
 		int height = getHeight();
+		
+		int buttonWidth = unrestrictedButtonWidth();
+		if(buttons.size() * buttonWidth > width) {
+			buttonWidth = width / buttons.size();
+		}
 		
 		for(int i = 0; i < buttons.size(); i++) {
 			SelectorButton<T> button = buttons.get(i);
@@ -69,7 +75,7 @@ public abstract class SelectorWidget<T> extends AbstractWidget {
 			button.setY(y);
 			button.setWidth(buttonWidth);
 			button.setHeight(height);
-			x += unrestrictedButtonWidth;
+			x += buttonWidth;
 		}
 	}
 	
