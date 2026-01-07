@@ -21,11 +21,11 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.phys.Vec3;
 
-public class Window {
+public class WindowDisplay {
 	
 	private static final float PIXEL_SCALE = 1.0f / 500;
 	
-	public final WLCAbstractWindow backing;
+	public final WLCAbstractWindow window;
 	
 	// World position of window
 	public Vec3 pivot = new Vec3(0, 0, 0);
@@ -39,16 +39,16 @@ public class Window {
 	private int width;
 	private int height;
 	
-	public Window(WLCToplevel toplevel) {
-		this.backing = toplevel;
+	public WindowDisplay(WLCToplevel toplevel) {
+		this.window = toplevel;
 	}
 	
-	public Window(WLCPopup popup) {
-		this.backing = popup;
+	public WindowDisplay(WLCPopup popup) {
+		this.window = popup;
 	}
 	
 	public boolean isAlive() {
-		return backing.isAlive();
+		return window.isAlive();
 	}
 	
 	public void rotate(Vec3 normal, Vec3 down) {
@@ -92,28 +92,16 @@ public class Window {
 	}
 	
 	private void updateGeometry() {
-		WLCSurface root = backing.getSurfaceTree();
+		WLCSurface root = window.getSurfaceTree();
 		width = root.width();
 		height = root.height();
 	}
 	
-//	private long last = System.currentTimeMillis();
-//	private Random rand = new Random();
-	
 	public void render(WorldRenderContext ctx) {
 		updateGeometry();
 		
-//		normal = new Vec3(ctx.camera().getLookVector()).reverse();
-//		down = new Vec3(ctx.camera().getUpVector()).reverse();
-		
-//		if(System.currentTimeMillis() - last > 10000) {
-//			normal = Vec3.directionFromRotation(rand.nextFloat(-180, 180), rand.nextFloat(-180, 180));
-//			down = new Vec3(rand.nextDouble(), rand.nextDouble(), rand.nextDouble()).cross(normal).normalize();
-//			last = System.currentTimeMillis();
-//		}
-		
 		int depth = 0;
-		for(WLCSurface surface = backing.getSurfaceTree(); surface != null; surface = surface.getNextChild()) {
+		for(WLCSurface surface = window.getSurfaceTree(); surface != null; surface = surface.getNextChild()) {
 			renderSurface(ctx, surface, depth);
 			depth++;
 		}
@@ -127,8 +115,6 @@ public class Window {
 		origin = origin.add(normal.scale(depth * 0.0001));
 		
 		BufferTexture buf = surface.getBuffer();
-		
-//		WaylandCraft.LOGGER.info("SURFACE D: " + depth + ", X: " + surface.xSubpos + ", Y: " + surface.ySubpos + ", W: " + surface.width() + ", H: " + surface.height() + ", BUF: " + buf);
 		
 		if(buf == null) return;
 		
@@ -194,7 +180,7 @@ public class Window {
 		WindowBounds bounds = new WindowBounds();
 		WLCSurface surface;
 		
-		for(surface = backing.getSurfaceTree(); surface != null; surface = surface.getNextChild()) {
+		for(surface = window.getSurfaceTree(); surface != null; surface = surface.getNextChild()) {
 			int minX = surface.xSubpos;
 			int minY = surface.ySubpos;
 			int maxX = minX + surface.width();
@@ -235,7 +221,7 @@ public class Window {
 	/* Perform ray-window intersection
 	 * `dir` must be normalized.
 	 */
-	public WindowHitResult intersect(Vec3 pos, Vec3 dir) {
+	public DisplayHitResult intersect(Vec3 pos, Vec3 dir) {
 		double p1 = pivot.subtract(pos).dot(normal);
 		double p2 = dir.dot(normal);
 		
@@ -259,7 +245,7 @@ public class Window {
 		double dist = t;
 		if(p2 > 0) dist *= -1;
 		
-		return new WindowHitResult(this, hitPos, localCoords, dist);
+		return new DisplayHitResult(this, hitPos, localCoords, dist);
 	}
 	
 	public static class WindowBounds {
@@ -286,14 +272,14 @@ public class Window {
 		
 	}
 	
-	public static class WindowHitResult {
+	public static class DisplayHitResult {
 		
-		public final Window target;
+		public final WindowDisplay target;
 		public final Vec3 position;
 		public final Vec3 surfaceLocal;
 		public final double dist;
 		
-		public WindowHitResult(Window target, Vec3 position, Vec3 surfaceLocal, double dist) {
+		public DisplayHitResult(WindowDisplay target, Vec3 position, Vec3 surfaceLocal, double dist) {
 			this.target = target;
 			this.position = position;
 			this.surfaceLocal = surfaceLocal;

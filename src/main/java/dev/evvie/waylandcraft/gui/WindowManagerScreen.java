@@ -73,7 +73,7 @@ public class WindowManagerScreen extends Screen {
 			
 			@Override
 			public boolean elementDimColor(WLCToplevel element) {
-				return !wlc.hasWindowFor(element);
+				return !wlc.hasDisplayFor(element);
 			}
 			
 			@Override
@@ -121,14 +121,14 @@ public class WindowManagerScreen extends Screen {
 	private void onGrabPressed(Button button) {
 		if(focused == null) return;
 		
-		wlc.grabbedWindow = wlc.getOrCreateWindow(focused);
+		wlc.grabbedDisplay = wlc.getOrCreateDisplay(focused);
 		this.onClose();
 	}
 	
 	private void onHidePressed(Button button) {
 		if(focused == null) return;
 		
-		wlc.windows.removeIf((w) -> w.backing == focused);
+		wlc.displays.removeIf((w) -> w.window == focused);
 	}
 	
 	private void onResizePressed(Button button) {
@@ -236,7 +236,7 @@ public class WindowManagerScreen extends Screen {
 		
 		if(focused != null) {
 			grabButton.active = true;
-			hideButton.active = wlc.hasWindowFor(focused);
+			hideButton.active = wlc.hasDisplayFor(focused);
 			resizeButton.active = true;
 			stickyButton.active = true;
 			stickyButton.setMessage(Component.literal(wlc.stickyToplevel == focused ? "Unsticky" : "Sticky"));

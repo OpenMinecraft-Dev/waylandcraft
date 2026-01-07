@@ -6,8 +6,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 import dev.evvie.waylandcraft.WaylandCraft;
-import dev.evvie.waylandcraft.Window;
-import dev.evvie.waylandcraft.Window.WindowHitResult;
+import dev.evvie.waylandcraft.WindowDisplay;
+import dev.evvie.waylandcraft.WindowDisplay.DisplayHitResult;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -31,10 +31,10 @@ public class GameRendererMixin {
 		Vec3 pos = cameraEntity.getEyePosition(partialTicks);
 		Vec3 dir = cameraEntity.getViewVector(partialTicks);
 		
-		WindowHitResult windowHit = null;
+		DisplayHitResult windowHit = null;
 		
-		for(Window window : WaylandCraft.instance.windows) {
-			WindowHitResult h = window.intersect(pos, dir);
+		for(WindowDisplay window : WaylandCraft.instance.displays) {
+			DisplayHitResult h = window.intersect(pos, dir);
 			if(h == null) continue;
 			
 			if(windowHit == null || h.position.distanceToSqr(pos) < windowHit.position.distanceToSqr(pos)) {
