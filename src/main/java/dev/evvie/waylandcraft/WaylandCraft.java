@@ -335,7 +335,7 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 		int x = popup.offsetX - popup.geometry.x() + parent.window.geometry.x();
 		int y = popup.offsetY - popup.geometry.y() + parent.window.geometry.y();
 		
-		window.moveOrigin(parent.localToWorld(x, y, 0.05));
+		window.moveOrigin(parent.localToWorld(x, y, 0.01));
 	}
 	
 	private void anchorToCamera(WindowDisplay display, Camera camera) {
