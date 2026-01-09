@@ -9,14 +9,12 @@ import org.lwjgl.opengl.GL11;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 
-import dev.evvie.waylandcraft.bridge.WLCAbstractWindow;
-import dev.evvie.waylandcraft.bridge.WLCSurface;
-import dev.evvie.waylandcraft.bridge.WLCSurface.ViewportSource;
 import net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallback;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -45,60 +43,21 @@ public class RenderUtils {
 		return POSITION_COLOR_TEX;
 	}
 	
-	public static void renderWindowGUI(GuiGraphics context, WLCAbstractWindow window, float x, float y, float scale) {
-		for(WLCSurface surface = window.getSurfaceTree(); surface != null; surface = surface.getNextChild()) {
-			renderSurfaceGUI(context, surface, x + surface.xSubpos * scale, y + surface.ySubpos * scale, scale);
-		}
+	public static void blitGUI(GuiGraphics graphics, int tex, float x1, float y1, float x2, float y2) {
+		blitGUI(graphics, tex, x1, y1, x2, y2, 0, 0, 1, 1);
 	}
 	
-	public static void renderSurfaceGUI(GuiGraphics context, WLCSurface surface, float x, float y, float scale) {
-		BufferTexture buf = surface.getBuffer();
-		if(buf == null) return;
-		
-		float w = surface.width() * scale;
-		float h = surface.height() * scale;
-		
-		float crop_x1 = 0.0f;
-		float crop_y1 = 0.0f;
-		float crop_x2 = 1.0f;
-		float crop_y2 = 1.0f;
-		
-		ViewportSource src = surface.getViewportSource();
-		if(src != null) {
-			crop_x1 = (float) (src.x / buf.width);
-			crop_y1 = (float) (src.y / buf.height);
-			crop_x2 = (float) ((src.x + src.width) / buf.width);
-			crop_y2 = (float) ((src.y + src.height) / buf.height);
-		}
-		
-		renderBufferGUI(context, buf, x, y, w, h, crop_x1, crop_y1, crop_x2, crop_y2);
-	}
-	
-	public static void renderBufferGUI(GuiGraphics context, BufferTexture buf, float x, float y, float w, float h) {
-		renderBufferGUI(context, buf, x, y, w, h, 0, 0, 1, 1);
-	}
-	
-	public static void renderBufferGUI(GuiGraphics context, BufferTexture buf, float x, float y, float w, float h, float u1, float v1, float u2, float v2) {
-		Matrix4f mat = context.pose().last().pose();
-		
-		Tesselator tesselator = Tesselator.getInstance();
-		BufferBuilder vertexBuf = tesselator.getBuilder();
-		vertexBuf.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX);
-		vertexBuf.vertex(mat, x,     y,     0).color(1.0f, 1.0f, 1.0f, 1.0f).uv(u1, v1).endVertex();
-		vertexBuf.vertex(mat, x,     y + h, 0).color(1.0f, 1.0f, 1.0f, 1.0f).uv(u1, v2).endVertex();
-		vertexBuf.vertex(mat, x + w, y + h, 0).color(1.0f, 1.0f, 1.0f, 1.0f).uv(u2, v2).endVertex();
-		vertexBuf.vertex(mat, x + w, y,     0).color(1.0f, 1.0f, 1.0f, 1.0f).uv(u2, v1).endVertex();
-		
-		if(buf.format == BufferTexture.FORMAT_XRGB8888) {
-			RenderSystem.setShader(RenderUtils::getPositionColorTexShader);
-		}
-		else if(buf.format == BufferTexture.FORMAT_ARGB8888) {
-			RenderSystem.setShader(GameRenderer::getPositionColorTexShader);
-		}
-		
-		RenderSystem.setShaderTexture(0, buf.id);
-		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-		tesselator.end();
+	public static void blitGUI(GuiGraphics graphics, int tex, float x1, float y1, float x2, float y2, float u1, float v1, float u2, float v2) {
+		RenderSystem.setShaderTexture(0, tex);
+		RenderSystem.setShader(GameRenderer::getPositionTexShader);
+		Matrix4f matrix4f = graphics.pose().last().pose();
+		BufferBuilder bufferBuilder = Tesselator.getInstance().getBuilder();
+		bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+		bufferBuilder.vertex(matrix4f, x1, y1, 0).uv(u1, v1).endVertex();
+		bufferBuilder.vertex(matrix4f, x1, y2, 0).uv(u1, v2).endVertex();
+		bufferBuilder.vertex(matrix4f, x2, y2, 0).uv(u2, v2).endVertex();
+		bufferBuilder.vertex(matrix4f, x2, y1, 0).uv(u2, v1).endVertex();
+		BufferUploader.drawWithShader(bufferBuilder.end());
 	}
 	
 	public static Matrix4f cameraTransform(Camera camera) {

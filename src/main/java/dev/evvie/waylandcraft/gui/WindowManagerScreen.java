@@ -6,10 +6,12 @@ import java.util.Optional;
 
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.opengl.GL33;
 
 import dev.evvie.waylandcraft.BufferTexture;
 import dev.evvie.waylandcraft.RenderUtils;
 import dev.evvie.waylandcraft.WaylandCraft;
+import dev.evvie.waylandcraft.WindowFramebuffer;
 import dev.evvie.waylandcraft.XDGDesktopManager.IconData;
 import dev.evvie.waylandcraft.bridge.WLCAbstractWindow;
 import dev.evvie.waylandcraft.bridge.WLCPopup;
@@ -226,13 +228,22 @@ public class WindowManagerScreen extends Screen {
 		
 		windows.clear();
 		
+		GL33.glEnable(GL33.GL_BLEND);
+		
 		if(renderToplevel != null) {
 			prepareToplevel(renderToplevel);
 			
 			for(WindowElement element : windows) {
-				RenderUtils.renderWindowGUI(context, element.window, element.x, element.y, 1 / scale);
+				WindowFramebuffer buf = element.window.framebuffer;
+				float x = element.x - buf.getXOff() / scale;
+				float y = element.y - buf.getYOff() / scale;
+				float w = buf.getWidth() / scale;
+				float h = buf.getHeight() / scale;
+				RenderUtils.blitGUI(context, buf.getTexture(), x, y, x + w, y + h);
 			}
 		}
+		
+		GL33.glDisable(GL33.GL_BLEND);
 		
 		if(focused != null) {
 			grabButton.active = true;

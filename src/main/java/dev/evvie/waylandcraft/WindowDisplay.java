@@ -1,24 +1,13 @@
 package dev.evvie.waylandcraft;
 
 import org.joml.Matrix3d;
-import org.joml.Matrix4f;
 import org.joml.Vector3d;
-
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
 
 import dev.evvie.waylandcraft.bridge.WLCAbstractWindow;
 import dev.evvie.waylandcraft.bridge.WLCPopup;
 import dev.evvie.waylandcraft.bridge.WLCSurface;
-import dev.evvie.waylandcraft.bridge.WLCSurface.ViewportSource;
 import dev.evvie.waylandcraft.bridge.WLCToplevel;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.minecraft.client.Camera;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 
@@ -99,16 +88,6 @@ public class WindowDisplay {
 	}
 	
 	public void render(WorldRenderContext ctx) {
-		/*
-		updateGeometry();
-		
-		int depth = 0;
-		for(WLCSurface surface = window.getSurfaceTree(); surface != null; surface = surface.getNextChild()) {
-			renderSurface(ctx, surface, depth);
-			depth++;
-		}
-		*/
-		
 		updateGeometry();
 		
 		Vec3 origin = origin();
@@ -120,75 +99,6 @@ public class WindowDisplay {
 		Vec3 tr = tl.add(localX.scale(window.framebuffer.getWidth()));
 		
 		RenderUtils.drawTexturedQuad(ctx.camera(), window.framebuffer.getTexture(), tl, bl, br, tr, new Vec2(0, 0), new Vec2(0, 1), new Vec2(1, 1), new Vec2(1, 0));
-	}
-	
-	private void renderSurface(WorldRenderContext ctx, WLCSurface surface, int depth) {
-		Vec3 origin = origin();
-		Vec3 localX = localX();
-		Vec3 localY = localY();
-		origin = origin.add(localX.scale(surface.xSubpos)).add(localY.scale(surface.ySubpos));
-		origin = origin.add(normal.scale(depth * 0.0001));
-		
-		BufferTexture buf = surface.getBuffer();
-		
-		if(buf == null) return;
-		
-		Vec3 tl = origin;
-		Vec3 bl = origin.add(localY.scale(surface.height()));
-		Vec3 br = bl.add(localX.scale(surface.width()));
-		Vec3 tr = tl.add(localX.scale(surface.width()));
-		
-		float crop_x1 = 0.0f;
-		float crop_y1 = 0.0f;
-		float crop_x2 = 1.0f;
-		float crop_y2 = 1.0f;
-		
-		ViewportSource src = surface.getViewportSource();
-		if(src != null) {
-			crop_x1 = (float) (src.x / buf.width);
-			crop_y1 = (float) (src.y / buf.height);
-			crop_x2 = (float) ((src.x + src.width) / buf.width);
-			crop_y2 = (float) ((src.y + src.height) / buf.height);
-		}
-		
-		Camera camera = ctx.camera();
-		PoseStack matrixStack = new PoseStack();
-		matrixStack.translate(-camera.getPosition().x, -camera.getPosition().y, -camera.getPosition().z);
-		Matrix4f mat = matrixStack.last().pose();
-		
-		Tesselator tesselator = Tesselator.getInstance();
-		
-		/* Surface contents */
-		BufferBuilder vertexBuf = tesselator.getBuilder();
-		vertexBuf.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX);
-		vertexBuf.vertex(mat, (float) tl.x, (float) tl.y, (float) tl.z).color(1.0f, 1.0f, 1.0f, 1.0f).uv(crop_x1, crop_y1).endVertex();
-		vertexBuf.vertex(mat, (float) bl.x, (float) bl.y, (float) bl.z).color(1.0f, 1.0f, 1.0f, 1.0f).uv(crop_x1, crop_y2).endVertex();
-		vertexBuf.vertex(mat, (float) br.x, (float) br.y, (float) br.z).color(1.0f, 1.0f, 1.0f, 1.0f).uv(crop_x2, crop_y2).endVertex();
-		vertexBuf.vertex(mat, (float) tr.x, (float) tr.y, (float) tr.z).color(1.0f, 1.0f, 1.0f, 1.0f).uv(crop_x2, crop_y1).endVertex();
-		
-		if(buf.format == BufferTexture.FORMAT_XRGB8888) {
-			RenderSystem.setShader(RenderUtils::getPositionColorTexShader);
-		}
-		else if(buf.format == BufferTexture.FORMAT_ARGB8888) {
-			RenderSystem.setShader(GameRenderer::getPositionColorTexShader);
-		}
-//		RenderSystem.setShader(RenderUtils::getPositionColorTexShader);
-		
-		RenderSystem.setShaderTexture(0, buf.id);
-		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-		tesselator.end();
-		
-		/* Surface backside */
-		vertexBuf = tesselator.getBuilder();
-		vertexBuf.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-		vertexBuf.vertex(mat, (float) tl.x, (float) tl.y, (float) tl.z).color(0.0f, 0.0f, 0.0f, 1.0f).endVertex();
-		vertexBuf.vertex(mat, (float) tr.x, (float) tr.y, (float) tr.z).color(0.0f, 0.0f, 0.0f, 1.0f).endVertex();
-		vertexBuf.vertex(mat, (float) br.x, (float) br.y, (float) br.z).color(0.0f, 0.0f, 0.0f, 1.0f).endVertex();
-		vertexBuf.vertex(mat, (float) bl.x, (float) bl.y, (float) bl.z).color(0.0f, 0.0f, 0.0f, 1.0f).endVertex();
-		
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
-		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-		tesselator.end();
 	}
 	
 	public WindowBounds calculateBounds() {

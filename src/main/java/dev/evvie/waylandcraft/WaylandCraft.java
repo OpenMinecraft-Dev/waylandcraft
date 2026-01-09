@@ -189,7 +189,11 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 				
 				if(appID != null) {
 					IconData icon = xdgManager.getIcon(appID);
-					if(icon != null) RenderUtils.renderBufferGUI(context, icon.texture, x - font.lineHeight - 2, yoff, font.lineHeight, font.lineHeight);
+					int iconX = x - font.lineHeight - 2;
+					int iconY = yoff;
+					int iconW = font.lineHeight;
+					int iconH = font.lineHeight;
+					if(icon != null) RenderUtils.blitGUI(context, icon.texture.id, iconX, iconY, iconX + iconW, iconY + iconH);
 				}
 				
 				yoff += ystep;
@@ -197,11 +201,15 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 			
 			if(stickyToplevel != null && !stickyToplevel.isAlive()) stickyToplevel = null;
 			if(stickyToplevel != null) {
+				WindowFramebuffer buf = stickyToplevel.framebuffer;
 				SurfaceGeometry geometry = stickyToplevel.geometry;
 				
 				int size = 200;
 				stickyToplevelScale = size / (float) Math.max(geometry.width(), geometry.height());
-				RenderUtils.renderWindowGUI(context, stickyToplevel, -geometry.x() * stickyToplevelScale, -geometry.y() * stickyToplevelScale, stickyToplevelScale);
+				float x = -geometry.x() * stickyToplevelScale;
+				float y = -geometry.y() * stickyToplevelScale;
+				
+				RenderUtils.blitGUI(context, buf.getTexture(), x, y, buf.getWidth() * stickyToplevelScale, buf.getHeight() * stickyToplevelScale);
 			}
 		});
 		

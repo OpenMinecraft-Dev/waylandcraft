@@ -171,7 +171,7 @@ public abstract class SelectorWidget<T> extends AbstractWidget {
 			int iconSize = height - 4;
 			
 			if(icon != null) {
-				RenderUtils.renderBufferGUI(context, icon, xoff, y + 2, iconSize, iconSize);
+				RenderUtils.blitGUI(context, icon.id, xoff, y + 2, xoff + iconSize, y + 2 + iconSize);
 				xoff += iconSize + 2;
 			}
 			
