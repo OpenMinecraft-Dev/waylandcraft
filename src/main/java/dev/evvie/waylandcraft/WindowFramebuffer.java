@@ -1,5 +1,9 @@
 package dev.evvie.waylandcraft;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL33;
 
@@ -7,10 +11,13 @@ import dev.evvie.waylandcraft.bridge.WLCAbstractWindow;
 import dev.evvie.waylandcraft.bridge.WLCSurface;
 import dev.evvie.waylandcraft.bridge.WLCSurface.ViewportSource;
 import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceLocation;
 
 public class WindowFramebuffer {
 	
 	private static int SHADER = -1;
+	private static ResourceLocation SHADER_FRAG_LOC = new ResourceLocation(WaylandCraft.MOD_ID, "shaders/window.fsh");
+	private static ResourceLocation SHADER_VERT_LOC = new ResourceLocation(WaylandCraft.MOD_ID, "shaders/window.vsh");
 	
 	public final WLCAbstractWindow window;
 	
@@ -25,13 +32,6 @@ public class WindowFramebuffer {
 	
 	private WindowFramebuffer(WLCAbstractWindow window) {
 		this.window = window;
-		
-		if(SHADER < 0) {
-			SHADER = compileShaderProgram(
-					"#version 430 core\nlayout(location = 0) in vec2 pos;\nlayout(location = 1) in vec2 uv;\nout vec2 texCoord;\nuniform mat4 transform;\nvoid main() { gl_Position = transform * vec4(pos, 0.0f, 1.0f); texCoord = uv; }",
-					"#version 430 core\nout vec4 color;\nin vec2 texCoord;\nuniform sampler2D tex;\nvoid main() { color = texture(tex, texCoord); }"
-			);
-		}
 	}
 	
 	public static WindowFramebuffer renderWindow(WLCAbstractWindow window) {
@@ -41,6 +41,7 @@ public class WindowFramebuffer {
 	}
 	
 	private void init() {
+		ensureShaderCompiled();
 		updateDimensions();
 		render();
 	}
@@ -197,6 +198,29 @@ public class WindowFramebuffer {
 		GL33.glDeleteRenderbuffers(depth_stencil_rbo);
 		GL33.glDeleteFramebuffers(fbo);
 		GL33.glDeleteTextures(tex);
+	}
+	
+	private static void ensureShaderCompiled() {
+		if(SHADER == -1) {
+			try {
+				compileShader();
+			} catch (IOException e) {
+				e.printStackTrace();
+				throw new IllegalStateException("Failed to compile shader: IOException");
+			}
+		}
+	}
+	
+	private static void compileShader() throws IOException {
+		InputStream vertIn = Minecraft.getInstance().getResourceManager().getResource(SHADER_VERT_LOC).get().open();
+		String vertCode = new String(vertIn.readAllBytes(), StandardCharsets.UTF_8);
+		vertIn.close();
+		
+		InputStream fragIn = Minecraft.getInstance().getResourceManager().getResource(SHADER_FRAG_LOC).get().open();
+		String fragCode = new String(fragIn.readAllBytes(), StandardCharsets.UTF_8);
+		fragIn.close();
+		
+		SHADER = compileShaderProgram(vertCode, fragCode);
 	}
 	
 	private static int compileVertexShader(String code) {
