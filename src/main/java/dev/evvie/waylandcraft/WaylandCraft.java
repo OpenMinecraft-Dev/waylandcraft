@@ -206,8 +206,8 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 				
 				int size = 200;
 				stickyToplevelScale = size / (float) Math.max(geometry.width(), geometry.height());
-				float x = -geometry.x() * stickyToplevelScale;
-				float y = -geometry.y() * stickyToplevelScale;
+				float x = 0 + (-buf.getXOff() - geometry.x()) * stickyToplevelScale;
+				float y = 0 + (-buf.getYOff() - geometry.y()) * stickyToplevelScale;
 				
 				RenderUtils.blitGUI(context, buf.getTexture(), x, y, buf.getWidth() * stickyToplevelScale, buf.getHeight() * stickyToplevelScale);
 			}

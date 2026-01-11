@@ -66,6 +66,7 @@ public class WindowDisplay {
 		return down.scale(PIXEL_SCALE);
 	}
 	
+	// World coordinates of the origin of the root surface surface-local coordinate space
 	public Vec3 origin() {
 		return pivot.add(localX().scale(-width/2)).add(localY().scale(-height/2));
 	}
@@ -90,13 +91,21 @@ public class WindowDisplay {
 	public void render(WorldRenderContext ctx) {
 		updateGeometry();
 		
+		int xoff = window.framebuffer.getXOff();
+		int yoff = window.framebuffer.getYOff();
+		int bufWidth = window.framebuffer.getWidth();
+		int bufHeight = window.framebuffer.getHeight();
+		
 		Vec3 origin = origin();
 		Vec3 localX = localX();
 		Vec3 localY = localY();
-		Vec3 tl = origin;
-		Vec3 bl = origin.add(localY.scale(window.framebuffer.getHeight()));
-		Vec3 br = bl.add(localX.scale(window.framebuffer.getWidth()));
-		Vec3 tr = tl.add(localX.scale(window.framebuffer.getWidth()));
+		
+		Vec3 bufOrigin = origin.add(localX.scale(-xoff)).add(localY.scale(-yoff));
+		
+		Vec3 tl = bufOrigin;
+		Vec3 bl = bufOrigin.add(localY.scale(bufHeight));
+		Vec3 br = bl.add(localX.scale(bufWidth));
+		Vec3 tr = tl.add(localX.scale(bufWidth));
 		
 		RenderUtils.drawTexturedQuad(ctx.camera(), window.framebuffer.getTexture(), tl, bl, br, tr, new Vec2(0, 0), new Vec2(0, 1), new Vec2(1, 1), new Vec2(1, 0));
 	}
