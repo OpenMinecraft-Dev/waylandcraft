@@ -32,8 +32,10 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
 public class WaylandCraft implements ModInitializer, ClientModInitializer {
@@ -275,6 +277,20 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 		if(pointerGrab == null) return false;
 		
 		bridge.sendRelativeMotion(dx, dy);
+		LocalPlayer player = Minecraft.getInstance().player;
+		
+		WindowDisplay display = displays.stream().filter((w) -> w.window == keyboardCapture).findAny().orElse(null);
+		if(display != null) {
+			Vec3 eye = player.getEyePosition(Minecraft.getInstance().getFrameTime());
+			Vec3 diff = display.pivot.subtract(eye);
+			
+			float yaw = Mth.wrapDegrees((float)(Mth.atan2(diff.z, diff.x) * (double)(180F / (float)Math.PI)) - 90.0F);
+			float pitch = Mth.wrapDegrees((float)(-(Mth.atan2(diff.y, Math.sqrt(diff.x * diff.x + diff.z * diff.z)) * (double)(180F / (float)Math.PI))));
+			
+			player.setYRot(yaw);
+			player.setXRot(pitch);
+		}
+		
 		return true;
 	}
 	
