@@ -1,6 +1,7 @@
 use crate::bridge::BridgeState;
 use crate::egl::EGLHelper;
 use crate::seat::WLCSeatState;
+use crate::ddm::WLCDataState;
 use std::sync::Arc;
 use std::ops::DerefMut;
 use std::time::{SystemTime, UNIX_EPOCH, Duration};
@@ -83,6 +84,7 @@ pub struct WLCState {
     pub dmabuf_global: DmabufGlobal,
     pub requests: WindowRequests,
     pub seat: WLCSeatState,
+    pub data: WLCDataState,
 }
 
 #[derive(Default)]
@@ -110,7 +112,8 @@ impl WLCState {
         let seat = WLCSeatState::new();
         seat.create_globals(&disp);
 
-        ddm::create_ddm_global(&disp);
+        let data = WLCDataState::new();
+        data.create_global(&disp);
 
         Self {
             display_handle: disp.clone(),
@@ -124,6 +127,7 @@ impl WLCState {
             dmabuf_global,
             requests: WindowRequests::default(),
             seat,
+            data,
         }
     }
 }
