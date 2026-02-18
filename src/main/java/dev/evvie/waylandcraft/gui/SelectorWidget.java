@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.opengl.GL33;
 
 import dev.evvie.waylandcraft.BufferTexture;
 import dev.evvie.waylandcraft.RenderUtils;
@@ -172,7 +173,9 @@ public abstract class SelectorWidget<T> extends AbstractWidget {
 			int iconSize = height - 4;
 			
 			if(icon != null) {
+				GL33.glEnable(GL33.GL_BLEND);
 				RenderUtils.blitGUI(context, icon.id, xoff, y + 2, xoff + iconSize, y + 2 + iconSize);
+				GL33.glDisable(GL33.GL_BLEND);
 				xoff += iconSize + 2;
 			}
 			

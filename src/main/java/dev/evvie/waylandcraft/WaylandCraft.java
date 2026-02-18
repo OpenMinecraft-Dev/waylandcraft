@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.stream.Stream;
 
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.opengl.GL33;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -228,7 +229,9 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 					int iconY = yoff;
 					int iconW = font.lineHeight;
 					int iconH = font.lineHeight;
+					GL33.glEnable(GL33.GL_BLEND);
 					if(icon != null) RenderUtils.blitGUI(context, icon.id, iconX, iconY, iconX + iconW, iconY + iconH);
+					GL33.glDisable(GL33.GL_BLEND);
 				}
 				
 				yoff += ystep;
@@ -250,7 +253,9 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 				w /= guiScale * 2;
 				h /= guiScale * 2;
 				
+				GL33.glEnable(GL33.GL_BLEND);
 				RenderUtils.blitGUI(context, buf.getTexture(), x, y, w, h);
+				GL33.glDisable(GL33.GL_BLEND);
 			}
 		});
 		
