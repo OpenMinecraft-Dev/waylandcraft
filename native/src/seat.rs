@@ -37,6 +37,7 @@ use xkbcommon::xkb::{self, Keymap};
 
 pub struct WLCSeatState {
     pub pointers: Vec<WlPointer>,
+    pub pressed_buttons: Vec<u32>,
     pub keyboards: Vec<WlKeyboard>,
     pub keymap_file: SealedFile,
     pub xkb_context: xkb::Context,
@@ -122,6 +123,7 @@ impl WLCSeatState {
 
         WLCSeatState {
             pointers: vec![],
+            pressed_buttons: vec![],
             keyboards: vec![],
             keymap_file,
             xkb_context,
@@ -141,46 +143,72 @@ impl WLCSeatState {
         }
     }
 
-    // Set pointer focus on a surface and register movement
-    pub fn pointer_motion(&self, surface: WlSurface, x: f64, y: f64) {
-        if !surface.is_alive() { return };
-        let client = surface.client().unwrap();
+    fn pointer_focus_eq(
+        &self,
+        pointer: &WLCPointerData,
+        surface: &WlSurface
+    ) -> bool {
+        pointer.focus.as_ref().is_some_and(|s| s == surface)
+    }
 
+    fn pointer_focus(&self, surface: Option<&WlSurface>, x: f64, y: f64) {
+        // Unfocus any pointers currently focused on the wrong surface
         self.for_all_pointers(|pointer, data| {
-            let pointer_client = pointer.client().unwrap();
-
-            // If WlPointer belongs to different client, make it lose focus
-            if pointer_client != client {
-                if let Some(focus) = &data.focus {
-                    pointer.leave(new_serial(), focus);
-                    self.pointer_frame(pointer);
-                    data.focus = None;
-                }
-                return;
-            }
-
-            // This pointer is now guaranteed to be of the same client as the
-            // surface
-
-            if let Some(focus) = &data.focus {
-                if *focus != surface {
-                    // Previously focusing different surface
-                    let serial = new_serial();
-                    pointer.leave(serial, focus);
-                    pointer.enter(serial, &surface, x, y);
-                    self.pointer_frame(pointer);
-                    data.focus = Some(surface.clone());
-                } else {
-                    // Focus already on this surface
-                    pointer.motion(get_time(), x, y);
-                    self.pointer_frame(pointer);
-                }
-            } else {
-                pointer.enter(new_serial(), &surface, x, y);
-                data.focus = Some(surface.clone());
-
+            let focus = match &data.focus {
+                Some(s) => s,
+                None => { return },
+            };
+            let unfocus = match surface {
+                Some(s) => s != focus,
+                None => true,
+            };
+            if unfocus {
+                pointer.leave(new_serial(), focus);
                 self.pointer_frame(pointer);
+                data.focus = None;
             }
+        });
+
+        let surface = match surface {
+            Some(s) => s,
+            None => { return },
+        };
+
+        // Generate pointer enter events
+        self.for_all_pointers(|pointer, data| {
+            // Already correct focus
+            if self.pointer_focus_eq(data, surface) { return }
+            assert_eq!(data.focus, None);
+
+            // Client does not own surface
+            if surface.client() != pointer.client() { return }
+
+            pointer.enter(new_serial(), surface, x, y);
+            self.pointer_frame(pointer);
+            data.focus = Some(surface.clone());
+        });
+    }
+
+    // Set pointer focus on a surface and register movement
+    pub fn pointer_motion(&self, surface: Option<WlSurface>, x: f64, y: f64) {
+        let surface = surface.filter(|s| s.is_alive());
+
+        if self.pressed_buttons.is_empty() {
+            self.pointer_focus(surface.as_ref(), x, y);
+        }
+
+        let surface = match surface {
+            Some(s) => s,
+            None => { return },
+        };
+
+        // Send motion events
+        self.for_all_pointers(|pointer, data| {
+            // Pointer does not hold focus
+            if !self.pointer_focus_eq(data, &surface) { return }
+
+            pointer.motion(get_time(), x, y);
+            self.pointer_frame(pointer);
         });
     }
 
@@ -200,12 +228,20 @@ impl WLCSeatState {
         });
     }
 
-    pub fn pointer_button(&self, button: u32, state: ButtonState) {
+    pub fn pointer_button(&mut self, button: u32, state: ButtonState) {
+        if state == ButtonState::Pressed {
+            if self.pressed_buttons.contains(&button) { return }
+            self.pressed_buttons.push(button);
+        } else {
+            if !self.pressed_buttons.contains(&button) { return }
+            self.pressed_buttons.retain(|b| *b != button);
+        }
+
         self.for_all_pointers(|pointer, data| {
-            if data.focus.is_some() {
-                pointer.button(new_serial(), get_time(), button, state);
-                self.pointer_frame(pointer);
-            }
+            if !data.focus.is_some() { return }
+
+            pointer.button(new_serial(), get_time(), button, state);
+            self.pointer_frame(pointer);
         });
     }
 
@@ -214,17 +250,6 @@ impl WLCSeatState {
             if data.focus.is_some() {
                 pointer.axis(get_time(), axis, value);
                 self.pointer_frame(pointer);
-            }
-        });
-    }
-
-    // Remove pointer from any surfaces
-    pub fn pointer_unfocus(&self) {
-        self.for_all_pointers(|pointer, data| {
-            if let Some(focus) = &data.focus {
-                pointer.leave(new_serial(), focus);
-                self.pointer_frame(pointer);
-                data.focus = None;
             }
         });
     }

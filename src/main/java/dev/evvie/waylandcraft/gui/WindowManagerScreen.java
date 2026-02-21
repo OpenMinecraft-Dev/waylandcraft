@@ -371,7 +371,7 @@ public class WindowManagerScreen extends Screen {
 		
 		HoveredSurface hovered = surfaceUnderPointer(x, y);
 		if(hovered != null) {
-			wlc.bridge.sendButton(0x110 + mouseButton, 1);
+			wlc.pressButton(mouseButton);
 			return true;
 		}
 		
@@ -392,7 +392,7 @@ public class WindowManagerScreen extends Screen {
 		
 		HoveredSurface hovered = surfaceUnderPointer(x, y);
 		if(hovered != null) {
-			wlc.bridge.sendButton(0x110 + mouseButton, 0);
+			wlc.releaseButton(mouseButton);
 			return true;
 		}
 		
@@ -458,6 +458,7 @@ public class WindowManagerScreen extends Screen {
 	public void removed() {
 		if(resizeMode) exitResizeMode();
 		wlc.bridge.sendMotionOutside();
+		wlc.releaseHeldButtons();
 	}
 	
 	private void prepareToplevel(WLCToplevel toplevel) {

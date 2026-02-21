@@ -290,6 +290,31 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 		return displays.stream().anyMatch((w) -> w.window == window);
 	}
 	
+	private ArrayList<Integer> pressedButtons = new ArrayList<Integer>();
+	
+	public void releaseHeldButtons() {
+		for(int button : pressedButtons) {
+			bridge.sendButton(0x110 + button, 0);
+		}
+		pressedButtons.clear();
+	}
+	
+	public void pressButton(int button) {
+		if(pressedButtons.contains(button)) return;
+		
+		// 0x110 is linux BTN_LEFT, see linux/input-event-codes.h
+		bridge.sendButton(0x110 + button, 1);
+		pressedButtons.add(button);
+	}
+	
+	public void releaseButton(int button) {
+		if(!pressedButtons.contains(button)) return;
+		
+		// 0x110 is linux BTN_LEFT, see linux/input-event-codes.h
+		bridge.sendButton(0x110 + button, 0);
+		pressedButtons.removeIf((b) -> b == button);
+	}
+	
 	/* Handle mouse button input
 	 * Returns true when the mouse button action has been consumed
 	 */
@@ -298,6 +323,13 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 			grabbedDisplay = null;
 			return true;
 		}
+		
+		if(action == GLFW.GLFW_RELEASE && pressedButtons.contains(button)) {
+			bridge.sendButton(0x110 + button, 0);
+			pressedButtons.removeIf((b) -> b == button);
+			return true;
+		}
+		
 		if(hitResult == null) return false;
 		
 		WindowDisplay display = hitResult.target;
@@ -311,12 +343,16 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 		// Check if on the backside of the window
 		if(hitResult.dist < 0) return true;
 		
-		// 0x110 is linux BTN_LEFT, see linux/input-event-codes.h
-		bridge.sendButton(0x110 + button, action);
-		
-		if(action == GLFW.GLFW_PRESS && display.window instanceof WLCToplevel) bridge.focusSurface((WLCToplevel) display.window);
-		
-		return true;
+		if(action == GLFW.GLFW_PRESS) {
+			if(display.window instanceof WLCToplevel) bridge.focusSurface((WLCToplevel) display.window);
+			
+			pressButton(button);
+			return true;
+		}
+		else {
+			releaseButton(button);
+			return true;
+		}
 	}
 	
 	/* Handle mouse being turned in game
@@ -468,7 +504,10 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 		boolean inScreenNow = Minecraft.getInstance().screen != null;
 		
 		// Send pointer moved outside window when a screen is opened
-		if(inScreenNow && !inScreen) bridge.sendMotionOutside();
+		if(inScreenNow && !inScreen) {
+			releaseHeldButtons();
+			bridge.sendMotionOutside();
+		}
 		inScreen = inScreenNow;
 		
 		// Don't send hitResult-based pointer updates when inside a screen
@@ -477,6 +516,7 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 		}
 		
 		if(grabbedDisplay != null) {
+			releaseHeldButtons();
 			bridge.sendMotionOutside();
 			return;
 		}
