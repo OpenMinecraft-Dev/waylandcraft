@@ -31,15 +31,23 @@ import net.minecraft.world.phys.Vec3;
 public class RenderUtils {
 	
 	private static ShaderInstance CUTOUT_NO_COLOR;
+	private static ShaderInstance RENDERTYPE_WINDOW_ITEM;
 	
 	protected static void registerShaders(CoreShaderRegistrationCallback.RegistrationContext context) throws IOException {
 		context.register(new ResourceLocation(WaylandCraft.MOD_ID, "cutout_no_color"), DefaultVertexFormat.POSITION_TEX, shader -> {
 			CUTOUT_NO_COLOR = shader;
 		});
+		context.register(new ResourceLocation(WaylandCraft.MOD_ID, "rendertype_window_item"), DefaultVertexFormat.NEW_ENTITY, shader -> {
+			RENDERTYPE_WINDOW_ITEM = shader;
+		});
 	}
 	
 	public static ShaderInstance getCutoutNoColor() {
 		return CUTOUT_NO_COLOR;
+	}
+	
+	public static ShaderInstance getRendertypeWindowItem() {
+		return RENDERTYPE_WINDOW_ITEM;
 	}
 	
 	public static void blitGUIUnscaled(GuiGraphics graphics, int tex, float x1, float y1, float x2, float y2) {

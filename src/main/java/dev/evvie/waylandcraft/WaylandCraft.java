@@ -71,6 +71,8 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 	
 	public KeyMapping keyOpenScreen;
 	
+	public WindowInHandRenderer windowInHandRenderer = new WindowInHandRenderer();
+	
 	@Override
 	public void onInitialize() {
 		WindowItem.register();

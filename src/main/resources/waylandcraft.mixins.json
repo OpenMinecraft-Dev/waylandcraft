@@ -9,7 +9,8 @@
 		"KeyboardHandlerMixin",
 		"IMouseHandlerMixin",
 		"ItemRendererMixin",
-		"ItemInHandRendererMixin"
+		"ItemInHandRendererMixin",
+		"IItemInHandRendererMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
