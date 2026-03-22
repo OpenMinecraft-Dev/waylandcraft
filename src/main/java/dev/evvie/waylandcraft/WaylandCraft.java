@@ -63,6 +63,7 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 	public XDGDesktopManager xdgManager = new XDGDesktopManager();
 	
 	public KeyMapping keyOpenScreen;
+	public KeyMapping keyCaptureKeyboard;
 	
 	public WindowInHandRenderer windowInHandRenderer = new WindowInHandRenderer();
 	public WaylandHudRenderer hudRenderer = new WaylandHudRenderer(this);
@@ -72,6 +73,8 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 	// HitResult of currently hovered WindowDisplay
 	// Only non-null, when no exclusive pointer grabs are currently active
 	public DisplayHitResult hoveredDisplay = null;
+	
+	public KeyboardCaptureMode keyboardCaptureMode = KeyboardCaptureMode.NONE;
 	
 	@Override
 	public void onInitialize() {
@@ -85,6 +88,7 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 		instance = this;
 		
 		keyOpenScreen = KeyBindingHelper.registerKeyBinding(new KeyMapping("key.windowManager", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_B, KEYBIND_CATEGORY));
+		keyCaptureKeyboard = KeyBindingHelper.registerKeyBinding(new KeyMapping("key.captureKeyboard", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_G, KEYBIND_CATEGORY));
 		
 		WorldRenderEvents.AFTER_ENTITIES.register(this::renderWorld);
 		ClientTickEvents.END_CLIENT_TICK.register(this::onClientTick);
@@ -157,10 +161,31 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 		updateOutputSize(inWMScreen);
 	}
 	
+	public void enableKeyboardCapture() {
+		if(keyboardCaptureMode != KeyboardCaptureMode.NONE) return;
+		
+		keyboardCaptureMode = KeyboardCaptureMode.CAPTURE;
+		bridge.activateKeyboard();
+	}
+	
+	public void disableKeyboardCapture() {
+		if(keyboardCaptureMode == KeyboardCaptureMode.NONE) return;
+		
+		keyboardCaptureMode = KeyboardCaptureMode.NONE;
+		bridge.deactivateKeyboard();
+	}
+	
 	public void onClientTick(Minecraft minecraft) {
 		if(keyOpenScreen.consumeClick()) {
+			keyboardCaptureMode = KeyboardCaptureMode.NONE;
 			pointerGrabs.releaseAll();
 			minecraft.setScreen(new WindowManagerScreen(WaylandCraft.instance));
+			return;
+		}
+		
+		if(keyCaptureKeyboard.consumeClick()) {
+			enableKeyboardCapture();
+			return;
 		}
 	}
 	
@@ -391,23 +416,21 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 	 * For X11 and Wayland hosts, this is a huge hack but should mostly work for now
 	 */
 	public boolean onKeyPress(long windowHandle, int key, int scancode, int action, int modifiers) {
-		/*
-		if(key == GLFW.GLFW_KEY_F7) {
-			handleCaptureKey(action);
+		if(keyboardCaptureMode == KeyboardCaptureMode.NONE) return false;
+		
+		if(key == GLFW.GLFW_KEY_ESCAPE) {
+			disableKeyboardCapture();
 			return true;
 		}
 		
-		if(keyboardCapture == null) return false;
-
 		if(action == GLFW.GLFW_PRESS) {
 			bridge.pressKey(scancode);
 		}
 		else if(action == GLFW.GLFW_RELEASE) {
 			bridge.releaseKey(scancode);
 		}
+		
 		return true;
-		*/
-		return false;
 	}
 	
 	private void anchorToParent(WLCPopup popup) {
@@ -427,6 +450,12 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 		int y = popup.offsetY - popup.geometry.y() + parent.window.geometry.y();
 		
 		window.moveOrigin(parent.localToWorld(x, y, 0.01));
+	}
+	
+	public static enum KeyboardCaptureMode {
+		
+		NONE, CAPTURE;
+		
 	}
 	
 }

@@ -6,6 +6,7 @@ import org.lwjgl.opengl.GL33;
 
 import dev.evvie.waylandcraft.RenderUtils;
 import dev.evvie.waylandcraft.WaylandCraft;
+import dev.evvie.waylandcraft.WaylandCraft.KeyboardCaptureMode;
 import dev.evvie.waylandcraft.WindowFramebuffer;
 import dev.evvie.waylandcraft.bridge.WLCToplevel;
 import dev.evvie.waylandcraft.bridge.WLCAbstractWindow.SurfaceGeometry;
@@ -32,11 +33,11 @@ public class WaylandHudRenderer {
 		int yoff = 30;
 		int ystep = font.lineHeight + 2;
 		
-//		if(WaylandCraft.instance.keyboardCapture != null) {
-//			String text = "KEYBOARD CAPTURED [PRESS F7]";
-//			context.drawString(font, text, context.guiWidth() - font.width(text) - 10, yoff, Color.red.getRGB(), true);
-//			yoff += ystep;
-//		}
+		if(WaylandCraft.instance.keyboardCaptureMode == KeyboardCaptureMode.CAPTURE) {
+			String text = "KEYBOARD CAPTURED [PRESS ESCAPE]";
+			context.drawString(font, text, context.guiWidth() - font.width(text) - 10, yoff, Color.red.getRGB(), true);
+			yoff += ystep;
+		}
 		
 		for(WLCToplevel toplevel : WaylandCraft.instance.bridge.getToplevels()) {
 			String appID = toplevel.appID;
