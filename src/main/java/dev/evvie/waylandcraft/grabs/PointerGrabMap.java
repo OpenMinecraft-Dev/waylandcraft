@@ -51,11 +51,25 @@ public class PointerGrabMap {
 		grabs.add(grab);
 	}
 	
-	public void moveWorld(Vec3 pos, Vec3 dir) {
+	public void startExclusive(PointerGrab grab) {
+		if(isExclusiveGrabActive()) return;
+		if(!grab.exclusive()) return;
+		
+		this.releaseAll();
+		
+		try {
+			grab.init();
+		} catch (GrabDroppedException e) {
+			return;
+		}
+		grabs.add(grab);
+	}
+	
+	public void moveWorld(Vec3 pos, Vec3 view, Vec3 up) {
 		PointerGrab[] arr = grabs.toArray(PointerGrab[]::new);
 		for(PointerGrab grab : arr) {
 			try {
-				grab.moveWorld(pos, dir);
+				grab.moveWorld(pos, view, up);
 			} catch(GrabDroppedException e) {
 				grabs.remove(grab);
 			}

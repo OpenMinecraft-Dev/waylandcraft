@@ -45,13 +45,13 @@ public class ImplicitGrab extends PointerGrab {
 	}
 	
 	@Override
-	public void moveWorld(Vec3 pos, Vec3 dir) throws GrabDroppedException {
+	public void moveWorld(Vec3 pos, Vec3 view, Vec3 up) throws GrabDroppedException {
 		this.checkValid();
 		
 		WindowDisplay display = WaylandCraft.instance.getDisplay(window);
 		if(display == null) return;
 		
-		DisplayHitResult hitResult = display.intersect(pos, dir);
+		DisplayHitResult hitResult = display.intersect(pos, view);
 		if(hitResult == null) return;
 		
 		Vec3 relativeCoords = hitResult.surfaceLocalOrigin.subtract(surface.xSubpos, surface.ySubpos, 0);

@@ -18,6 +18,7 @@ import dev.evvie.waylandcraft.bridge.WLCSurface;
 import dev.evvie.waylandcraft.bridge.WLCToplevel;
 import dev.evvie.waylandcraft.bridge.WaylandCraftBridge;
 import dev.evvie.waylandcraft.bridge.WaylandCraftBridge.Size;
+import dev.evvie.waylandcraft.grabs.WindowGrab;
 import dev.evvie.waylandcraft.mixin.IMouseHandlerMixin;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
@@ -152,7 +153,7 @@ public class WindowManagerScreen extends Screen {
 	private void onGrabPressed(Button button) {
 		if(focused == null) return;
 		
-		wlc.getOrCreateDisplay(focused).anchorToEntity(minecraft.player);;
+		wlc.pointerGrabs.startExclusive(new WindowGrab(wlc.getOrCreateDisplay(focused), 0));
 		this.onClose();
 	}
 	

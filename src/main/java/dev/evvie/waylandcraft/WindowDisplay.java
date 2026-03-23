@@ -175,13 +175,13 @@ public class WindowDisplay {
 		return new DisplayHitResult(this, hitSurface, hitPos, localCoords, localCoordsRelative, dist);
 	}
 	
-	public void anchorToEntity(Entity entity) {
-		Vec3 pos = WaylandCraftUtils.getPosition(entity);
-		Vec3 look = WaylandCraftUtils.getLookVector(entity);
-		Vec3 up = WaylandCraftUtils.getUpVector(entity);
-		
+	public void anchorToPosView(Vec3 pos, Vec3 look, Vec3 up) {
 		this.pivot = pos.add(look.scale(2));
 		this.rotate(look.reverse(), up.reverse());
+	}
+	
+	public void anchorToEntity(Entity entity) {
+		anchorToPosView(WaylandCraftUtils.getPosition(entity), WaylandCraftUtils.getLookVector(entity), WaylandCraftUtils.getUpVector(entity));
 	}
 	
 	public static class DisplayHitResult {

@@ -35,11 +35,11 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
+import net.minecraft.client.Camera;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -154,10 +154,11 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 			bridge.focusSurface(focus);
 		}
 		
+		processPointerMotion(context.camera());
+		
 		RenderSystem.enableDepthTest();
 		displays.forEach((w) -> w.render(context));
 		
-		processPointerMotion();
 		updateOutputSize(inWMScreen);
 	}
 	
@@ -277,7 +278,7 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 		return getDisplay(window) != null;
 	}
 	
-	private void processPointerMotion() {
+	private void processPointerMotion(Camera camera) {
 		// Reset hovered display and pick block override
 		this.hoveredDisplay = null;
 		this.overridePickBlock = false;
@@ -291,9 +292,9 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 			return;
 		}
 		
-		Entity entity = Minecraft.getInstance().cameraEntity;
-		Vec3 pos = WaylandCraftUtils.getPosition(entity);
-		Vec3 look = WaylandCraftUtils.getLookVector(entity);
+		Vec3 pos = camera.getPosition();
+		Vec3 look = new Vec3(camera.getLookVector());
+		Vec3 up = new Vec3(camera.getUpVector());
 		
 		HitResult gameHitResult = Minecraft.getInstance().hitResult;
 		
@@ -317,7 +318,7 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 		if(pointerGrabs.isGrabActive()) {
 			this.overridePickBlock = true;
 			
-			pointerGrabs.moveWorld(pos, look);
+			pointerGrabs.moveWorld(pos, look, up);
 			if(finalHitResult != null) {
 				pointerGrabs.hover(finalHitResult.target.window, finalHitResult.surface, finalHitResult.surfaceLocalOrigin.x, finalHitResult.surfaceLocalOrigin.y);
 			}
@@ -350,6 +351,8 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 			pointerGrabs.release(button);
 			return true;
 		}
+		
+		if(pointerGrabs.isExclusiveGrabActive()) return true;
 		
 		if(action == 1 && hoveredDisplay != null && !pointerGrabs.isGrabActive(button)) {
 			if(hoveredDisplay.dist >= 0) {
@@ -393,6 +396,8 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 	 * Returns true when the mouse scroll action has been consumed
 	 */
 	public boolean onScroll(long windowHandle, double scrollX, double scrollY) {
+		if(pointerGrabs.isExclusiveGrabActive()) return true;
+		
 		if(hoveredDisplay != null) {
 			if(hoveredDisplay.dist < 0) return true;
 			
