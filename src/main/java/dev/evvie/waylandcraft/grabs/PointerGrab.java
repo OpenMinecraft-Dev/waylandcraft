@@ -19,9 +19,6 @@ public abstract class PointerGrab {
 		throw new GrabDroppedException();
 	}
 	
-	// Forbid more pointer button interactions to start on other buttons
-	public abstract boolean exclusive();
-	
 	// Called when grab is first started
 	public abstract void init() throws GrabDroppedException;
 	

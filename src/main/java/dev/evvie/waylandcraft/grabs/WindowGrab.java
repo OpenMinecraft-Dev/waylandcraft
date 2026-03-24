@@ -14,11 +14,6 @@ public class WindowGrab extends PointerGrab {
 		this.window = window;
 	}
 	
-	@Override
-	public boolean exclusive() {
-		return true;
-	}
-	
 	private void checkValid() throws GrabDroppedException {
 		if(!window.isValid()) {
 			this.drop();

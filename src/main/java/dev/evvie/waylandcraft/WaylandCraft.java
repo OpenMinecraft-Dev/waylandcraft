@@ -69,7 +69,7 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 	public WindowInHandRenderer windowInHandRenderer = new WindowInHandRenderer();
 	public WaylandHudRenderer hudRenderer = new WaylandHudRenderer(this);
 	
-	public PointerGrabMap pointerGrabs = new PointerGrabMap();
+	public PointerGrabMap pointerGrabs = new PointerGrabMap(this);
 	
 	// HitResult of currently hovered WindowDisplay
 	// Only non-null, when no exclusive pointer grabs are currently active
@@ -400,7 +400,7 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 		if(action == 1 && hoveredDisplay != null && !pointerGrabs.isGrabActive(button)) {
 			if(hoveredDisplay.dist >= 0) {
 				WLCAbstractWindow window = hoveredDisplay.target.window;
-				pointerGrabs.startImplicit(window, hoveredDisplay.surface, button);
+				pointerGrabs.startImplicit(hoveredDisplay.target, hoveredDisplay.surface, button);
 				
 				if(window instanceof WLCToplevel) bridge.focusSurface((WLCToplevel) window);
 			}
