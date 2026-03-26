@@ -1,13 +1,14 @@
 package dev.evvie.waylandcraft.gui;
 
 import java.awt.Color;
+import java.util.Calendar;
 
 import org.lwjgl.opengl.GL33;
 
 import dev.evvie.waylandcraft.WaylandCraft;
 import dev.evvie.waylandcraft.WaylandCraft.KeyboardCaptureMode;
-import dev.evvie.waylandcraft.bridge.WLCToplevel;
 import dev.evvie.waylandcraft.bridge.WLCAbstractWindow.SurfaceGeometry;
+import dev.evvie.waylandcraft.bridge.WLCToplevel;
 import dev.evvie.waylandcraft.render.RenderUtils;
 import dev.evvie.waylandcraft.render.WindowFramebuffer;
 import net.minecraft.ChatFormatting;
@@ -30,6 +31,8 @@ public class WaylandHudRenderer {
 	
 	public void render(GuiGraphics context, float delta) {
 		if(Minecraft.getInstance().options.hideGui) return;
+		
+		drawTimeDate(context);
 		
 		Font font = Minecraft.getInstance().font;
 		int yoff = 30;
@@ -107,6 +110,13 @@ public class WaylandHudRenderer {
 			RenderUtils.renderWindow(buf, false, context.pose().last(), tl, bl, br, tr, new Vec2(0, 0), new Vec2(0, 1), new Vec2(1, 1), new Vec2(1, 0));
 			GL33.glDisable(GL33.GL_BLEND);
 		}
+	}
+	
+	private void drawTimeDate(GuiGraphics context) {
+		Font font = Minecraft.getInstance().font;
+		String datetime = String.format("%1$tF %1$tR", Calendar.getInstance());
+		
+		context.drawString(font, datetime, context.guiWidth() - font.width(datetime) - 2, 2, Color.white.getRGB(), true);
 	}
 	
 }
