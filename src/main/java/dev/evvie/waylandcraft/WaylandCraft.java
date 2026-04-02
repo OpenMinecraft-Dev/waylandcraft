@@ -32,6 +32,7 @@ import dev.evvie.waylandcraft.item.WindowItem;
 import dev.evvie.waylandcraft.item.WindowItemManager;
 import dev.evvie.waylandcraft.render.RenderUtils;
 import dev.evvie.waylandcraft.render.WindowInHandRenderer;
+import dev.evvie.waylandcraft.render.WindowInItemFrameRenderer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -77,6 +78,7 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 	public KeyMapping keyCaptureKeyboard;
 	
 	public WindowInHandRenderer windowInHandRenderer = new WindowInHandRenderer();
+	public WindowInItemFrameRenderer windowInItemFrameRenderer = new WindowInItemFrameRenderer();
 	public WaylandHudRenderer hudRenderer = new WaylandHudRenderer(this);
 	
 	public PointerGrabMap pointerGrabs = new PointerGrabMap(this);

@@ -14,7 +14,8 @@
 		"MinecraftMixin",
 		"LocalPlayerMixin",
 		"GuiMixin",
-		"NativeImageMixin"
+		"NativeImageMixin",
+		"ItemFrameRendererMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
