@@ -1711,3 +1711,42 @@ fn Java_dev_evvie_waylandcraft_bridge_WaylandCraftBridge_execApp<'l>(
     ];
     instance.xdg.exec_app(app_id, env_vars) as jboolean
 }
+
+#[unsafe(no_mangle)]
+pub extern "system"
+fn Java_dev_evvie_waylandcraft_bridge_WaylandCraftBridge_setKeymapDefault<'l>(
+    _env: JNIEnv<'l>,
+    _class: JClass<'l>,
+    ptr: jlong,
+) {
+    let instance = jptr_to_instance(ptr);
+    instance.state.seat.change_keymap_to_default();
+}
+
+#[unsafe(no_mangle)]
+pub extern "system"
+fn Java_dev_evvie_waylandcraft_bridge_WaylandCraftBridge_exportKeymap<'l>(
+    env: JNIEnv<'l>,
+    _class: JClass<'l>,
+    ptr: jlong,
+) -> jstring {
+    let instance = jptr_to_instance(ptr);
+    let keymap_str = instance.state.seat.export_keymap();
+    env.new_string(keymap_str).unwrap().into_raw()
+}
+
+#[unsafe(no_mangle)]
+pub extern "system"
+fn Java_dev_evvie_waylandcraft_bridge_WaylandCraftBridge_setKeymapFromStr<'l>(
+    env: JNIEnv<'l>,
+    _class: JClass<'l>,
+    ptr: jlong,
+    keymap_str: JString<'l>,
+) -> jboolean {
+    let instance = jptr_to_instance(ptr);
+    let keymap_str: String = unsafe {
+        env.get_string_unchecked(&keymap_str).unwrap()
+    }.into();
+
+    instance.state.seat.change_keymap_from_str(keymap_str) as jboolean
+}

@@ -508,6 +508,18 @@ public class WaylandCraftBridge {
 		return execApp(instance, appId);
 	}
 	
+	public void setKeymapDefault() {
+		setKeymapDefault(instance);
+	}
+	
+	public String exportKeymap() {
+		return exportKeymap(instance);
+	}
+	
+	public boolean setKeymapFromStr(String keymap) {
+		return setKeymapFromStr(instance, keymap);
+	}
+	
 	public static record Size(int width, int height) {}
 	
 	public static record ResizeRequest(int serial, int edges) {}
@@ -630,5 +642,9 @@ public class WaylandCraftBridge {
 	private static native boolean renderSVG(String path, int width, int height, long ptr);
 	
 	private static native boolean execApp(long instance, String appId);
+	
+	private static native void setKeymapDefault(long instance);
+	private static native String exportKeymap(long instance);
+	private static native boolean setKeymapFromStr(long instance, String keymap);
 	
 }
