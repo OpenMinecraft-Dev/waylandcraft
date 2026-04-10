@@ -409,6 +409,7 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 		// Check for pointer grab and short-circuit if any
 		if(pointerGrabs.isGrabActive()) {
 			this.overridePickBlock = true;
+			this.cursorShape = bridge.getCursorShape();
 			
 			pointerGrabs.moveWorld(pos, look, up);
 			if(finalHitResult != null) {
