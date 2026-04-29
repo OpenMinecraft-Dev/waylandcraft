@@ -51,7 +51,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -59,7 +59,7 @@ import net.minecraft.world.phys.Vec3;
 public class WaylandCraft implements ModInitializer, ClientModInitializer {
 	public static final String MOD_ID = "waylandcraft";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-	private static final KeyMapping.Category KEYBIND_CATEGORY = KeyMapping.Category.register(ResourceLocation.fromNamespaceAndPath(MOD_ID, "keys"));
+	private static final KeyMapping.Category KEYBIND_CATEGORY = KeyMapping.Category.register(Identifier.fromNamespaceAndPath(MOD_ID, "keys"));
 	
 	public static WaylandCraft instance;
 	
@@ -398,9 +398,9 @@ public class WaylandCraft implements ModInitializer, ClientModInitializer {
 			return;
 		}
 		
-		Vec3 pos = camera.getPosition();
-		Vec3 look = new Vec3(camera.getLookVector());
-		Vec3 up = new Vec3(camera.getUpVector());
+		Vec3 pos = camera.position();
+		Vec3 look = new Vec3(camera.forwardVector());
+		Vec3 up = new Vec3(camera.upVector());
 		
 		DisplayHitResult finalHitResult = null;
 		double finalDistance = Double.POSITIVE_INFINITY;

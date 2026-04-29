@@ -12,7 +12,7 @@ import net.minecraft.client.gui.navigation.FocusNavigationEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class CategorySelectorWidget extends AbstractWidget {
 	
@@ -50,9 +50,9 @@ public class CategorySelectorWidget extends AbstractWidget {
 	}
 	
 	private static final WidgetSprites BUTTON_SPRITES = new WidgetSprites(
-			ResourceLocation.withDefaultNamespace("widget/button"),
-			ResourceLocation.withDefaultNamespace("widget/button_disabled"),
-			ResourceLocation.withDefaultNamespace("widget/button_highlighted")
+			Identifier.withDefaultNamespace("widget/button"),
+			Identifier.withDefaultNamespace("widget/button_disabled"),
+			Identifier.withDefaultNamespace("widget/button_highlighted")
 	);
 	
 	private int elementsPerColumn() {
@@ -101,6 +101,6 @@ public class CategorySelectorWidget extends AbstractWidget {
 	protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
 	}
 	
-	public static record Entry(Component title, ResourceLocation icon) {}
+	public static record Entry(Component title, Identifier icon) {}
 	
 }

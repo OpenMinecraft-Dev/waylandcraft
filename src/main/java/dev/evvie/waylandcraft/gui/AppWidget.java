@@ -15,13 +15,13 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 
 public class AppWidget extends AbstractWidget {
 	
-	private static final ResourceLocation SLOT_THINGY = ResourceLocation.fromNamespaceAndPath(WaylandCraft.MOD_ID, "textures/gui/slot_thingy.png");
-	private static final ResourceLocation SLOT_THINGY_SELECTED = ResourceLocation.fromNamespaceAndPath(WaylandCraft.MOD_ID, "textures/gui/slot_thingy_selected_overlay.png");
+	private static final Identifier SLOT_THINGY = Identifier.fromNamespaceAndPath(WaylandCraft.MOD_ID, "textures/gui/slot_thingy.png");
+	private static final Identifier SLOT_THINGY_SELECTED = Identifier.fromNamespaceAndPath(WaylandCraft.MOD_ID, "textures/gui/slot_thingy_selected_overlay.png");
 	
 	public final DesktopEntry entry;
 	private Consumer<DesktopEntry> launchAction;
@@ -49,7 +49,7 @@ public class AppWidget extends AbstractWidget {
 		context.blit(SLOT_THINGY, x, y, x + width, y + height, 0.0f, 1.0f, 0.0f, 1.0f);
 		if(selected) context.blit(SLOT_THINGY_SELECTED, x - 1, y - 1, x + width + 1, y + height + 1, 0.0f, 1.0f, 0.0f, 1.0f);
 		
-		ResourceLocation icon = entry.getIcon();
+		Identifier icon = entry.getIcon();
 		int iconSize = icon != null ? height - 10 : 0;
 		
 		MutableComponent text = Component.literal(getTitle(entry));
@@ -61,7 +61,7 @@ public class AppWidget extends AbstractWidget {
 		context.disableScissor();
 		
 		if(selected) {
-			context.submitOutline(x - 1, y - 1, width + 2, height + 2, Color.white.getRGB());
+			context.renderOutline(x - 1, y - 1, width + 2, height + 2, Color.white.getRGB());
 			context.fill(x + 4, y + 4, x + width - 4, y + height - 4, ARGB.color(64, Color.black.getRGB()));
 		}
 	}

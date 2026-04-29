@@ -1,9 +1,10 @@
 package dev.evvie.waylandcraft.render.model;
 
-import java.util.Set;
+import java.util.function.Consumer;
 
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
@@ -14,48 +15,44 @@ import dev.evvie.waylandcraft.WaylandCraft;
 import dev.evvie.waylandcraft.bridge.WLCToplevel;
 import dev.evvie.waylandcraft.desktop.DesktopEntry;
 import dev.evvie.waylandcraft.item.WindowItem;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.special.SpecialModelRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
-public class WindowSpecialRenderer implements SpecialModelRenderer<ResourceLocation> {
+public class WindowSpecialRenderer implements SpecialModelRenderer<Identifier> {
 	
 	@Override
-	public void submit(ResourceLocation icon, ItemDisplayContext itemDisplayContext, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light, int overlayCoords, boolean foil, int outlineColor) {
+	public void submit(Identifier icon, ItemDisplayContext itemDisplayContext, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light, int overlayCoords, boolean foil, int outlineColor) {
 		poseStack.pushPose();
 		poseStack.translate(0, 0, 0.5);
-		submitNodeCollector.submitCustomGeometry(poseStack, RenderType.itemEntityTranslucentCull(icon), new IconRenderer(light, overlayCoords));
+		submitNodeCollector.submitCustomGeometry(poseStack, RenderTypes.itemEntityTranslucentCull(icon), new IconRenderer(light, overlayCoords));
 		poseStack.popPose();
 	}
 	
 	@Override
-	public ResourceLocation extractArgument(ItemStack item) {
+	public Identifier extractArgument(ItemStack item) {
 		WLCToplevel toplevel = WindowItem.getToplevel(item);
 		if(toplevel == null) return null;
 		
 		DesktopEntry entry = WaylandCraft.instance.xdgManager.forAppId(toplevel.appID);
 		if(entry == null) return null;
 		
-		ResourceLocation icon = entry.getIcon();
+		Identifier icon = entry.getIcon();
 		return icon;
 	}
 	
 	@Override
-	public void getExtents(Set<Vector3f> set) {
+	public void getExtents(Consumer<Vector3fc> consumer) {
 		/* I have no clue what coordinate space these are supposed to be but this seems to work I guess */
 		Pose pose = new PoseStack().last();
-		Vector3f pos1 = pose.pose().transformPosition(0, 1, 0, new Vector3f());
-		Vector3f pos2 = pose.pose().transformPosition(0, 0, 0, new Vector3f());
-		Vector3f pos3 = pose.pose().transformPosition(1, 0, 0, new Vector3f());
-		Vector3f pos4 = pose.pose().transformPosition(1, 1, 0, new Vector3f());
-		set.add(pos1);
-		set.add(pos2);
-		set.add(pos3);
-		set.add(pos4);
+		consumer.accept(pose.pose().transformPosition(0, 1, 0, new Vector3f()));
+		consumer.accept(pose.pose().transformPosition(0, 0, 0, new Vector3f()));
+		consumer.accept(pose.pose().transformPosition(1, 0, 0, new Vector3f()));
+		consumer.accept(pose.pose().transformPosition(1, 1, 0, new Vector3f()));
 	}
 	
 	public static record IconRenderer(int light, int overlayCoords) implements SubmitNodeCollector.CustomGeometryRenderer {

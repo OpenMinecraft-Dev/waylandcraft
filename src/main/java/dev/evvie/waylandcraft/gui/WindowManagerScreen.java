@@ -32,7 +32,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class WindowManagerScreen extends Screen {
 	
@@ -94,11 +94,11 @@ public class WindowManagerScreen extends Screen {
 			}
 			
 			@Override
-			public @Nullable ResourceLocation iconForElement(WLCToplevel element) {
+			public @Nullable Identifier iconForElement(WLCToplevel element) {
 				DesktopEntry entry = wlc.xdgManager.forAppId(element.appID);
 				if(entry == null) return null;
 				
-				ResourceLocation icon = entry.getIcon();
+				Identifier icon = entry.getIcon();
 				if(icon == null) return null;
 				
 				return icon;
@@ -119,7 +119,7 @@ public class WindowManagerScreen extends Screen {
 		buttons.add(resizeButton);
 		
 		hideButton = SpriteIconButton.builder(Component.literal("Hide"), this::onHidePressed, true)
-				.sprite(ResourceLocation.fromNamespaceAndPath("waylandcraft", "hide"), 15, 15)
+				.sprite(Identifier.fromNamespaceAndPath("waylandcraft", "hide"), 15, 15)
 				.size(22, 22)
 				.build();
 		hideButton.setPosition(3, topMargin);
@@ -128,7 +128,7 @@ public class WindowManagerScreen extends Screen {
 		buttons.add(hideButton);
 		
 		pinButton = SpriteIconButton.builder(Component.literal("Pin"), this::onPinPressed, true)
-				.sprite(ResourceLocation.fromNamespaceAndPath("waylandcraft", "pin"), 15, 15)
+				.sprite(Identifier.fromNamespaceAndPath("waylandcraft", "pin"), 15, 15)
 				.size(22, 22)
 				.build();
 		pinButton.setPosition(3, topMargin + 30);
@@ -137,7 +137,7 @@ public class WindowManagerScreen extends Screen {
 		buttons.add(pinButton);
 		
 		itemButton = SpriteIconButton.builder(Component.literal("Give Window Item"), this::onItemPressed, true)
-				.sprite(ResourceLocation.fromNamespaceAndPath("waylandcraft", "window"), 16, 16)
+				.sprite(Identifier.fromNamespaceAndPath("waylandcraft", "window"), 16, 16)
 				.size(22, 22)
 				.build();
 		itemButton.setPosition(3, topMargin + 60);
@@ -222,7 +222,7 @@ public class WindowManagerScreen extends Screen {
 	public void render(GuiGraphics context, int i, int j, float f) {
 		super.renderBlurredBackground(context);
 		
-		context.submitOutline(leftMargin - 1, topMargin - 1, areaWidth + 2, areaHeight + 2, Color.white.getRGB());
+		context.renderOutline(leftMargin - 1, topMargin - 1, areaWidth + 2, areaHeight + 2, Color.white.getRGB());
 		
 		guiScale = (int) Minecraft.getInstance().getWindow().getGuiScale();
 		wlc.bridge.setOutputBounds(areaWidth * guiScale, areaHeight * guiScale);

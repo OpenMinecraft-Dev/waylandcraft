@@ -21,15 +21,15 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class WaylandHudRenderer {
 	
 	private WaylandCraft wlc;
-	private static final ResourceLocation TIME_DATE = ResourceLocation.fromNamespaceAndPath(WaylandCraft.MOD_ID, "time-date");
-	private static final ResourceLocation APP_LIST = ResourceLocation.fromNamespaceAndPath(WaylandCraft.MOD_ID, "app-list");
-	private static final ResourceLocation PINNED_TOPLEVEL = ResourceLocation.fromNamespaceAndPath(WaylandCraft.MOD_ID, "pinned-toplevel");
-	private static final ResourceLocation DND_ICON = ResourceLocation.fromNamespaceAndPath(WaylandCraft.MOD_ID, "dnd-icon");
+	private static final Identifier TIME_DATE = Identifier.fromNamespaceAndPath(WaylandCraft.MOD_ID, "time-date");
+	private static final Identifier APP_LIST = Identifier.fromNamespaceAndPath(WaylandCraft.MOD_ID, "app-list");
+	private static final Identifier PINNED_TOPLEVEL = Identifier.fromNamespaceAndPath(WaylandCraft.MOD_ID, "pinned-toplevel");
+	private static final Identifier DND_ICON = Identifier.fromNamespaceAndPath(WaylandCraft.MOD_ID, "dnd-icon");
 	
 	public WaylandHudRenderer(WaylandCraft wlc) {
 		this.wlc = wlc;
@@ -80,7 +80,7 @@ public class WaylandHudRenderer {
 			context.drawString(font, Component.literal(name).withStyle(style), x, yoff, color.getRGB(), true);
 			
 			if(entry != null) {
-				ResourceLocation icon = entry.getIcon();
+				Identifier icon = entry.getIcon();
 				int iconX = x - font.lineHeight - 2;
 				int iconY = yoff;
 				int iconSize = font.lineHeight;

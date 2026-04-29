@@ -15,7 +15,7 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public abstract class SelectorWidget<T> extends AbstractWidget {
 	
@@ -80,7 +80,7 @@ public abstract class SelectorWidget<T> extends AbstractWidget {
 	}
 	
 	public abstract Component titleForElement(T element);
-	public abstract @Nullable ResourceLocation iconForElement(T element);
+	public abstract @Nullable Identifier iconForElement(T element);
 	public abstract boolean elementDimColor(T element);
 	
 	public T selection() {
@@ -142,7 +142,7 @@ public abstract class SelectorWidget<T> extends AbstractWidget {
 		public T element = null;
 		public boolean selected = false;
 		public boolean dimColor = false;
-		public ResourceLocation icon = null;
+		public Identifier icon = null;
 		
 		@SuppressWarnings("unchecked")
 		public SelectorButton(SelectorWidget<T> widget, int x, int y, int width, int height) {
@@ -150,13 +150,13 @@ public abstract class SelectorWidget<T> extends AbstractWidget {
 		}
 		
 		private static final WidgetSprites SPRITES = new WidgetSprites(
-				ResourceLocation.withDefaultNamespace("widget/button"),
-				ResourceLocation.withDefaultNamespace("widget/button_disabled"),
-				ResourceLocation.withDefaultNamespace("widget/button_highlighted")
+				Identifier.withDefaultNamespace("widget/button"),
+				Identifier.withDefaultNamespace("widget/button_disabled"),
+				Identifier.withDefaultNamespace("widget/button_highlighted")
 		);
 		
 		@Override
-		protected void renderWidget(GuiGraphics context, int i, int j, float f) {
+		protected void renderContents(GuiGraphics context, int i, int j, float f) {
 			int x = getX();
 			int y = getY();
 			int width = getWidth();
@@ -172,7 +172,7 @@ public abstract class SelectorWidget<T> extends AbstractWidget {
 			int iconSize = height - 4;
 			
 			if(icon != null) {
-//				RenderUtils.blit(context, icon, xoff, y + 2, iconSize, iconSize);
+				context.blit(icon, xoff, y + 2, xoff + iconSize, y + 2 + iconSize, 0.0f, 1.0f, 0.0f, 1.0f);
 				xoff += iconSize + 2;
 			}
 			

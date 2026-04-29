@@ -187,7 +187,7 @@ public class WindowDisplay {
 	}
 	
 	public void anchorToCamera(Camera camera) {
-		anchorToPosView(camera.getPosition(), new Vec3(camera.getLookVector()), new Vec3(camera.getUpVector()));
+		anchorToPosView(camera.position(), new Vec3(camera.forwardVector()), new Vec3(camera.upVector()));
 	}
 	
 	public void anchorToEntity(Entity entity) {

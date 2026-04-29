@@ -18,7 +18,7 @@ import dev.evvie.waylandcraft.mixin.NativeImageMixin;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class DesktopIcon {
 	
@@ -28,11 +28,11 @@ public class DesktopIcon {
 	
 	private IconImage image = null;
 	private IconTexture texture = null;
-	private final ResourceLocation location;
+	private final Identifier identifier;
 	
 	public DesktopIcon(String appId, String path) {
 		this.path = path;
-		this.location = ResourceLocation.fromNamespaceAndPath(WaylandCraft.MOD_ID, "icon_" + DigestUtils.sha1Hex(appId));
+		this.identifier = Identifier.fromNamespaceAndPath(WaylandCraft.MOD_ID, "icon_" + DigestUtils.sha1Hex(appId));
 		this.wlc = WaylandCraft.instance;
 	}
 	
@@ -81,13 +81,13 @@ public class DesktopIcon {
 		texture.upload();
 		
 		TextureManager textureManager = Minecraft.getInstance().getTextureManager();
-		textureManager.register(location, texture);
+		textureManager.register(identifier, texture);
 	}
 	
-	public ResourceLocation getTextureLocation() {
+	public Identifier getTextureLocation() {
 		this.upload();
 		if(texture == null) return null;
-		return location;
+		return identifier;
 	}
 	
 	private String getExtension(File file) {

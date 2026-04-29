@@ -15,7 +15,6 @@ import com.mojang.blaze3d.platform.SourceFactor;
 import com.mojang.blaze3d.shaders.UniformType;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.FilterMode;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
@@ -33,15 +32,15 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class WindowFramebuffer {
 	
 	public static final RenderPipeline WINDOW_PIPELINE = RenderPipelines.register(
 		RenderPipeline.builder()
-		.withLocation(ResourceLocation.fromNamespaceAndPath(WaylandCraft.MOD_ID, "pipeline/window"))
-		.withVertexShader(ResourceLocation.fromNamespaceAndPath(WaylandCraft.MOD_ID, "window"))
-		.withFragmentShader(ResourceLocation.fromNamespaceAndPath(WaylandCraft.MOD_ID, "window"))
+		.withLocation(Identifier.fromNamespaceAndPath(WaylandCraft.MOD_ID, "pipeline/window"))
+		.withVertexShader(Identifier.fromNamespaceAndPath(WaylandCraft.MOD_ID, "window"))
+		.withFragmentShader(Identifier.fromNamespaceAndPath(WaylandCraft.MOD_ID, "window"))
 		.withVertexFormat(DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS)
 		.withSampler("sampler")
 		.withUniform("window_info", UniformType.UNIFORM_BUFFER)
@@ -53,7 +52,7 @@ public class WindowFramebuffer {
 	public final WLCSurface surfaceTree;
 	private RenderTarget target = null;
 	private FramebufferTexture texture = null;
-	private ResourceLocation location = null;
+	private Identifier location = null;
 	
 	private int width = 0;
 	private int height = 0;
@@ -108,7 +107,6 @@ public class WindowFramebuffer {
 		if(width == 0 || height == 0) return;
 		
 		target = new TextureTarget(name(), width, height, false);
-		target.getColorTexture().setTextureFilter(FilterMode.LINEAR, FilterMode.NEAREST, true);
 		
 		PoseStack poseStack = new PoseStack();
 		poseStack.translate(-1.0, -1.0, 0.0);
@@ -136,7 +134,7 @@ public class WindowFramebuffer {
 			pass.setPipeline(WINDOW_PIPELINE);
 			for(CompiledBufferDraw element : elements) {
 				pass.setUniform("window_info", element.alpha ? alphaUniforms.currentBuffer() : nonAlphaUniforms.currentBuffer());
-				pass.bindSampler("sampler", element.textureView);
+				pass.bindTexture("sampler", element.textureView, RenderUtils.WINDOW_SAMPLER.get());
 				pass.setVertexBuffer(0, element.vertexBuffer);
 				pass.setIndexBuffer(element.indexBuffer, element.indexType);
 				pass.drawIndexed(0, 0, element.indexCount, 1);
@@ -199,7 +197,7 @@ public class WindowFramebuffer {
 		if(target == null) return;
 		
 		texture = new FramebufferTexture(getTextureView());
-		location = ResourceLocation.fromNamespaceAndPath(WaylandCraft.MOD_ID, name());
+		location = Identifier.fromNamespaceAndPath(WaylandCraft.MOD_ID, name());
 		
 		Minecraft.getInstance().getTextureManager().register(location, texture);
 	}
@@ -235,7 +233,7 @@ public class WindowFramebuffer {
 		return target.getColorTextureView();
 	}
 	
-	public ResourceLocation getTextureLocation() {
+	public Identifier getTextureLocation() {
 		return location;
 	}
 	

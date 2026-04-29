@@ -1,9 +1,14 @@
 package dev.evvie.waylandcraft.render;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.textures.AddressMode;
+import com.mojang.blaze3d.textures.FilterMode;
+import com.mojang.blaze3d.textures.GpuSampler;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
@@ -12,88 +17,90 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 
 import dev.evvie.waylandcraft.WaylandCraft;
 import dev.evvie.waylandcraft.mixin.IGuiGraphics;
-import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.RenderStateShard;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.SubmitNodeCollector.CustomGeometryRenderer;
+import net.minecraft.client.renderer.rendertype.RenderSetup;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.state.CameraRenderState;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.Util;
 import net.minecraft.world.phys.Vec3;
 
 public class RenderUtils {
 	
 	private static final RenderPipeline.Snippet WINDOW_PIPELINE_SNIPPET = RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
-			.withVertexShader(ResourceLocation.fromNamespaceAndPath(WaylandCraft.MOD_ID, "core/rendertype_window"))
-			.withFragmentShader(ResourceLocation.fromNamespaceAndPath(WaylandCraft.MOD_ID, "core/rendertype_window"))
+			.withVertexShader(Identifier.fromNamespaceAndPath(WaylandCraft.MOD_ID, "core/rendertype_window"))
+			.withFragmentShader(Identifier.fromNamespaceAndPath(WaylandCraft.MOD_ID, "core/rendertype_window"))
 			.withSampler("Sampler0")
 			.withVertexFormat(DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS)
 			.buildSnippet();
 	
 	private static final RenderPipeline WINDOW_CUTOUT_PIPELINE = RenderPipeline.builder(WINDOW_PIPELINE_SNIPPET)
-			.withLocation(ResourceLocation.fromNamespaceAndPath(WaylandCraft.MOD_ID, "pipeline/window_cutout"))
+			.withLocation(Identifier.fromNamespaceAndPath(WaylandCraft.MOD_ID, "pipeline/window_cutout"))
 			.withShaderDefine("ALPHA_CUTOUT")
 			.build();
 	
 	private static final RenderPipeline WINDOW_TRANSLUCENT_PIPELINE = RenderPipeline.builder(WINDOW_PIPELINE_SNIPPET)
-			.withLocation(ResourceLocation.fromNamespaceAndPath(WaylandCraft.MOD_ID, "pipeline/window_translucent"))
+			.withLocation(Identifier.fromNamespaceAndPath(WaylandCraft.MOD_ID, "pipeline/window_translucent"))
 			.withBlend(BlendFunction.TRANSLUCENT)
 			.build();
 	
 	private static final RenderPipeline WINDOW_CUTOUT_BACKGROUND_PIPELINE = RenderPipeline.builder(WINDOW_PIPELINE_SNIPPET)
-			.withLocation(ResourceLocation.fromNamespaceAndPath(WaylandCraft.MOD_ID, "pipeline/window_cutout_background"))
+			.withLocation(Identifier.fromNamespaceAndPath(WaylandCraft.MOD_ID, "pipeline/window_cutout_background"))
 			.withShaderDefine("ALPHA_CUTOUT")
 			.withShaderDefine("NO_COLOR")
 			.build();
 	
 	private static final RenderPipeline WINDOW_TRANSLUCENT_BACKGROUND_PIPELINE = RenderPipeline.builder(WINDOW_PIPELINE_SNIPPET)
-			.withLocation(ResourceLocation.fromNamespaceAndPath(WaylandCraft.MOD_ID, "pipeline/window_translucent_background"))
+			.withLocation(Identifier.fromNamespaceAndPath(WaylandCraft.MOD_ID, "pipeline/window_translucent_background"))
 			.withShaderDefine("NO_COLOR")
 			.withBlend(BlendFunction.TRANSLUCENT)
 			.build();
 	
-	public static final Function<ResourceLocation, RenderType> WINDOW_CUTOUT = Util.memoize(
-		(location) -> {
-			RenderType.CompositeState compositeState = RenderType.CompositeState.builder()
-					.setTextureState(new RenderStateShard.TextureStateShard(location, false))
-					.createCompositeState(false);
-			return RenderType.create("window_cutout", RenderType.TRANSIENT_BUFFER_SIZE, false, true, WINDOW_CUTOUT_PIPELINE, compositeState);
+	public static final Supplier<GpuSampler> WINDOW_SAMPLER = () -> RenderSystem.getSamplerCache().getSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.CLAMP_TO_EDGE, FilterMode.LINEAR, FilterMode.NEAREST, false);
+	
+	public static final Function<Identifier, RenderType> WINDOW_CUTOUT = Util.memoize(
+		(identifier) -> {
+			RenderSetup setup = RenderSetup.builder(WINDOW_CUTOUT_PIPELINE)
+					.withTexture("Sampler0", identifier, WINDOW_SAMPLER)
+					.createRenderSetup();
+			return RenderType.create("window_cutout", setup);
 		}
 	);
 	
-	public static final Function<ResourceLocation, RenderType> WINDOW_TRANSLUCENT = Util.memoize(
-		(location) -> {
-			RenderType.CompositeState compositeState = RenderType.CompositeState.builder()
-					.setTextureState(new RenderStateShard.TextureStateShard(location, false))
-					.createCompositeState(false);
-			return RenderType.create("window_translucent", RenderType.TRANSIENT_BUFFER_SIZE, false, true, WINDOW_TRANSLUCENT_PIPELINE, compositeState);
+	public static final Function<Identifier, RenderType> WINDOW_TRANSLUCENT = Util.memoize(
+		(identifier) -> {
+			RenderSetup setup = RenderSetup.builder(WINDOW_TRANSLUCENT_PIPELINE)
+					.withTexture("Sampler0", identifier, WINDOW_SAMPLER)
+					.createRenderSetup();
+			return RenderType.create("window_translucent", setup);
 		}
 	);
 	
-	public static final Function<ResourceLocation, RenderType> WINDOW_BACKGROUND_CUTOUT = Util.memoize(
-		(location) -> {
-			RenderType.CompositeState compositeState = RenderType.CompositeState.builder()
-					.setTextureState(new RenderStateShard.TextureStateShard(location, false))
-					.createCompositeState(false);
-			return RenderType.create("window_cutout_background", RenderType.TRANSIENT_BUFFER_SIZE, false, true, WINDOW_CUTOUT_BACKGROUND_PIPELINE, compositeState);
+	public static final Function<Identifier, RenderType> WINDOW_BACKGROUND_CUTOUT = Util.memoize(
+		(identifier) -> {
+			RenderSetup setup = RenderSetup.builder(WINDOW_CUTOUT_BACKGROUND_PIPELINE)
+					.withTexture("Sampler0", identifier, WINDOW_SAMPLER)
+					.createRenderSetup();
+			return RenderType.create("window_cutout_background", setup);
 		}
 	);
 	
-	public static final Function<ResourceLocation, RenderType> WINDOW_BACKGROUND_TRANSLUCENT = Util.memoize(
-		(location) -> {
-			RenderType.CompositeState compositeState = RenderType.CompositeState.builder()
-					.setTextureState(new RenderStateShard.TextureStateShard(location, false))
-					.createCompositeState(false);
-			return RenderType.create("window_translucent_background", RenderType.TRANSIENT_BUFFER_SIZE, false, true, WINDOW_TRANSLUCENT_BACKGROUND_PIPELINE, compositeState);
+	public static final Function<Identifier, RenderType> WINDOW_BACKGROUND_TRANSLUCENT = Util.memoize(
+		(identifier) -> {
+			RenderSetup setup = RenderSetup.builder(WINDOW_TRANSLUCENT_BACKGROUND_PIPELINE)
+					.withTexture("Sampler0", identifier, WINDOW_SAMPLER)
+					.createRenderSetup();
+			return RenderType.create("window_translucent_background", setup);
 		}
 	);
 	
 	public static final RenderPipeline WINDOW_BLIT = RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
-			.withLocation(ResourceLocation.fromNamespaceAndPath(WaylandCraft.MOD_ID, "pipeline/window_blit"))
-			.withVertexShader(ResourceLocation.fromNamespaceAndPath(WaylandCraft.MOD_ID, "core/window_blit"))
-			.withFragmentShader(ResourceLocation.fromNamespaceAndPath(WaylandCraft.MOD_ID, "core/window_blit"))
+			.withLocation(Identifier.fromNamespaceAndPath(WaylandCraft.MOD_ID, "pipeline/window_blit"))
+			.withVertexShader(Identifier.fromNamespaceAndPath(WaylandCraft.MOD_ID, "core/window_blit"))
+			.withFragmentShader(Identifier.fromNamespaceAndPath(WaylandCraft.MOD_ID, "core/window_blit"))
 			.withSampler("Sampler0")
 			.withBlend(BlendFunction.TRANSLUCENT)
 			.withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
@@ -102,7 +109,7 @@ public class RenderUtils {
 	public static void renderFramebuffer(WindowFramebuffer framebuffer, PoseStack poseStack, SubmitNodeCollector collector, boolean cutout, Vec3 tl, Vec3 bl, Vec3 br, Vec3 tr) {
 		if(!framebuffer.isValid()) return;
 		
-		Function<ResourceLocation, RenderType> renderType;
+		Function<Identifier, RenderType> renderType;
 		
 		// Front quad
 		renderType = cutout ? WINDOW_CUTOUT : WINDOW_TRANSLUCENT;

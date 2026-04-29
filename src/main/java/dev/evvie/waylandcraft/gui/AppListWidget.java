@@ -13,12 +13,12 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class AppListWidget extends AbstractContainerWidget {
 	
-	private static final ResourceLocation SCROLLER_SPRITE = ResourceLocation.withDefaultNamespace("widget/scroller");
-	private static final ResourceLocation SCROLLER_BACKGROUND_SPRITE = ResourceLocation.withDefaultNamespace("widget/scroller_background");
+	private static final Identifier SCROLLER_SPRITE = Identifier.withDefaultNamespace("widget/scroller");
+	private static final Identifier SCROLLER_BACKGROUND_SPRITE = Identifier.withDefaultNamespace("widget/scroller_background");
 	
 	private static final int SLOT_GAPS = 2;
 	public static final int ELEMENT_WIDTH = 200 + 2;
@@ -115,8 +115,8 @@ public class AppListWidget extends AbstractContainerWidget {
 		int width = ELEMENT_WIDTH;
 		int height = getHeight();
 		
-		context.submitOutline(x - 1, y - 1, width + 2, height + 2, Color.black.getRGB());
-		context.submitOutline(x - 2, y - 2, width + 4, height + 4, Color.black.getRGB());
+		context.renderOutline(x - 1, y - 1, width + 2, height + 2, Color.black.getRGB());
+		context.renderOutline(x - 2, y - 2, width + 4, height + 4, Color.black.getRGB());
 		
 		context.enableScissor(x, y, x + width, y + height);
 		
