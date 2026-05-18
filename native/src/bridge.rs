@@ -448,6 +448,7 @@ fn try_attach_shm(
         let width = metadata.width as jint;
         let height = metadata.height as jint;
         let format = (metadata.format as u32) as jint;
+        let stride = metadata.stride as jint;
         ensure_viewport_valid(surf_data, Size::new(width, height));
 
         unsafe {
@@ -455,13 +456,14 @@ fn try_attach_shm(
             let jptr = (ptr as usize) as jlong;
             env.call_method_unchecked(
                 obj,
-                (WLCSurface_class, "attachShmBuffer", "(JIII)V"),
+                (WLCSurface_class, "attachShmBuffer", "(JIIII)V"),
                 ReturnType::Primitive(Primitive::Void),
                 &[
                     jvalue { j: jptr },
                     jvalue { i: width },
                     jvalue { i: height },
                     jvalue { i: format },
+                    jvalue { i: stride },
                 ],
             )
             .unwrap();

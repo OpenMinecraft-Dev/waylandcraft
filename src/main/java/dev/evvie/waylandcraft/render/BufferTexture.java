@@ -42,11 +42,14 @@ public abstract class BufferTexture {
 	
 	public static class ShmBufferTexture extends BufferTexture {
 		
-		public final long ptr;
+		private final long ptr;
+		private final int stride;
 		
-		public ShmBufferTexture(long ptr, int width, int height, int format) {
+		public ShmBufferTexture(long ptr, int width, int height, int format, int stride) {
 			super(width, height, format);
 			this.ptr = ptr;
+			this.stride = stride;
+//			if(stride % 4 != 0) WaylandCraft.LOGGER.info("Stride is not a multiple of 4 bytes!!");
 			
 			init();
 		}
@@ -60,7 +63,7 @@ public abstract class BufferTexture {
 			GlStateManager._texParameter(GL33.GL_TEXTURE_2D, GL33.GL_TEXTURE_MIN_FILTER, GL33.GL_LINEAR);
 			GlStateManager._texParameter(GL33.GL_TEXTURE_2D, GL33.GL_TEXTURE_MAG_FILTER, GL33.GL_NEAREST);
 			
-			GlStateManager._pixelStore(GL33.GL_UNPACK_ROW_LENGTH, 0);
+			GlStateManager._pixelStore(GL33.GL_UNPACK_ROW_LENGTH, stride / 4);
 			GlStateManager._pixelStore(GL33.GL_UNPACK_SKIP_PIXELS, 0);
 			GlStateManager._pixelStore(GL33.GL_UNPACK_SKIP_ROWS, 0);
 			GlStateManager._pixelStore(GL33.GL_UNPACK_ALIGNMENT, 4);
