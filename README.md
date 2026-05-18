@@ -11,6 +11,36 @@ Wayland Compositor in Minecraft
 - xkbcommon library 1.11.0
 - xkbcommon tools (xkbcli)
 
+## Frequently Asked Questions
+### How do I use this thing?
+Download the mod from the releases section, install Minecraft Fabric for 26.1.2 and drag the jar file in your mods folder.
+Look at your keybind settings. By default `V` opens the app launcher, `G` enables keyboard capture allowing you to type in
+the windows, `B` opens the window manager screen.
+
+### How can I press Escape in the windows?
+Instead of using `G` to capture the keyboard, use `ALT+Q` instead. The only way to turn it off is to press `ALT-Q` again,
+so the `ESC` key is forwarded to the application.
+
+### How to do the relative mouse movement thing for 3D games?
+Move your mouse over the window, then activate the hard keyboard capture mode. (`ALT-Q`)
+Exiting the hard keyboard capture mode releases the mouse.
+
+### Will there be multiplayer support?
+Multiplayer support would require video streaming, a bunch of networking code and a rewrite of input handling,
+so it's not really planned right now.
+
+### But can I use it on a server though?
+You can, but because it's a client-side mod, other players won't see your windows or be able to interact with them.
+Also you will not receive the windows as items. To spawn a window in the world, go into the wm screen (default bind `B`)
+and then press and hold the "Grab" button.
+
+### Does this work in VR?
+Depending on your VR mod, you can probably get the windows to display fine but you probably won't be able to interact with
+the windows using your controller. Soooo, kinda.
+
+### Does this work with shaders?
+The windows are rendered into the world by themselves (not like blocks or entities) so a lot of shaders will break the functionality.
+
 ## Compilation
 You need a Rust development environment and a Java 25 SDK.
 Change into the `native` subdirectory and run `cargo build`.
