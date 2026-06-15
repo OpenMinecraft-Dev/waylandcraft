@@ -12,11 +12,11 @@ Now available on [Modrinth](https://modrinth.com/mod/waylandcraft)!
 - Fabric mod loader
 - xkbcommon library 1.11.0
 - xkbcommon tools (xkbcli)
+- xwayland-satellite (for Xwayland support)
 
 Additionally recommended:
 - Prism Launcher
 - Sodium
-- xwayland-satellite
 
 ## Important notes for installing / using!!!
 1. Do not use a Minecraft launcher packaged as a flatpak! You won't be able to use your apps.
@@ -34,11 +34,8 @@ Instead of using `G` to capture the keyboard, use `ALT+Q` instead. The only way 
 so the `ESC` key is forwarded to the application.
 
 ### How do I run X11 apps?
-Right now Xwayland isn't directly integrated yet. Instead you'll need to install
-[xwayland-satellite](https://github.com/Supreeeme/xwayland-satellite). Just run `xwayland-satellite :2`
-(or choose a different number than two) in a terminal inside of the game. Then
-when launching X11 apps you need to specify the DISPLAY environment variable. For example if you want to run Steam,
-run `DISPLAY=:2 steam` (in another terminal tab or window).
+waylandcraft has integrated support for [xwayland-satellite](https://github.com/Supreeeme/xwayland-satellite).
+If you have the binary installed on your system, it should automatically be started.
 
 ### How to do the relative mouse movement thing for 3D games?
 Move your mouse over the window, then activate the hard keyboard capture mode. (`ALT-Q`)
@@ -50,8 +47,9 @@ so it's not really planned right now.
 
 ### But can I use it on a server though?
 You can, but because it's a client-side mod, other players won't see your windows or be able to interact with them.
-Also you will not receive the windows as items. To spawn a window in the world, go into the wm screen (default bind `B`)
-and then press and hold the "Grab" button.
+Servers can opt to install the mod, which will allow players to use the window items for themselves.
+If the server doesn't support it, you can spawn a window in the world by going into the wm screen (default bind `B`)
+and then pressing and holding the "Grab" button.
 
 ### Does this work in VR?
 Depending on your VR mod, you can probably get the windows to display fine but you probably won't be able to interact with
