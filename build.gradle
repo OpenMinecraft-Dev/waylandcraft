@@ -50,6 +50,9 @@ java {
 	targetCompatibility = JavaVersion.VERSION_25
 }
 
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style;
+
 jar {
 	inputs.property "archivesName", project.base.archivesName
 	version = null
@@ -86,7 +89,11 @@ jar {
 	}
 
 	if(natives.size() < 1) {
-		ant.fail("native library not built!")
+		services
+			.get(StyledTextOutputFactory)
+			.create("waylandcraft")
+			.withStyle(Style.Failure)
+			.println("WARNING: Native library not built! The built mod will not contain native code");
 	}
 }
 
