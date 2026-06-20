@@ -19,7 +19,6 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 
 import dev.evvie.waylandcraft.WaylandCraft;
 import dev.evvie.waylandcraft.WaylandCraftCommon;
-import dev.evvie.waylandcraft.mixin.IGuiGraphicsExtractor;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -130,15 +129,6 @@ public class RenderUtils {
 		}
 	);
 	
-	public static final RenderPipeline WINDOW_BLIT = RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
-			.withLocation(Identifier.fromNamespaceAndPath(WaylandCraftCommon.MOD_ID, "pipeline/window_blit"))
-			.withVertexShader(Identifier.fromNamespaceAndPath(WaylandCraftCommon.MOD_ID, "core/window_blit"))
-			.withFragmentShader(Identifier.fromNamespaceAndPath(WaylandCraftCommon.MOD_ID, "core/window_blit"))
-			.withSampler("Sampler0")
-			.withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
-			.withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
-			.build();
-	
 	public static void renderFramebuffer(WindowFramebuffer framebuffer, PoseStack poseStack, SubmitNodeCollector collector, boolean cutout, Vec3 tl, Vec3 bl, Vec3 br, Vec3 tr) {
 		if(!framebuffer.isValid()) return;
 		
@@ -176,7 +166,7 @@ public class RenderUtils {
 	
 	public static void renderFramebuffer2D(GuiGraphicsExtractor context, WindowFramebuffer framebuffer, int x, int y, int w, int h) {
 		if(!framebuffer.isValid()) return;
-		((IGuiGraphicsExtractor) context).invokeInnerBlit(WINDOW_BLIT, framebuffer.getTextureLocation(), x, x + w, y, y + h, 0.0f, 1.0f, 0.0f, 1.0f, -1);
+		context.blit(framebuffer.getTextureLocation(), x, y, x + w, y + h, 0.0f, 1.0f, 0.0f, 1.0f);
 	}
 	
 }
