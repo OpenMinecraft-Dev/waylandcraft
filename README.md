@@ -34,7 +34,7 @@ Instead of using `G` to capture the keyboard, use `ALT+Q` instead. The only way 
 so the `ESC` key is forwarded to the application.
 
 ### How do I run X11 apps?
-waylandcraft has integrated support for [xwayland-satellite](https://github.com/Supreeeme/xwayland-satellite).
+Since v2.0.0 waylandcraft has integrated support for [xwayland-satellite](https://github.com/Supreeeme/xwayland-satellite).
 If you have the binary installed on your system, it should automatically be started.
 
 ### How to do the relative mouse movement thing for 3D games?
@@ -56,7 +56,13 @@ Depending on your VR mod, you can probably get the windows to display fine but y
 the windows using your controller. Soooo, kinda.
 
 ### Does this work with shaders?
-The windows are rendered into the world by themselves (not like blocks or entities) so a lot of shaders will break the functionality.
+Since v2.0.2 Iris shaders are supported.
+
+There are a couple of downsides though: The windows might have large borders and text in windows will be harder to read from a distance (because window anti-aliasing doesn't work)
+
+This is because for the shader support windows are rendered with the same pipeline as entities because otherwise the shaders would ignore them.
+
+For some shaders you might need to disable features like Temporal Anti Aliasing (TAA).
 
 ## Building and Running
 You need a Rust development environment and a Java 25 SDK.
