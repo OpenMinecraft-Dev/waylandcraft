@@ -1,7 +1,7 @@
 package dev.evvie.waylandcraft.grabs;
 
-import dev.evvie.waylandcraft.WindowDisplay;
-import dev.evvie.waylandcraft.WindowDisplay.DisplayHitResult;
+import dev.evvie.waylandcraft.displays.WindowDisplay;
+import dev.evvie.waylandcraft.displays.WindowDisplay.DisplayHitResult;
 import dev.evvie.waylandcraft.grabs.PointerGrabMap.ImplicitGrab;
 import dev.evvie.waylandcraft.utils.CursorShape;
 import net.minecraft.world.phys.Vec3;

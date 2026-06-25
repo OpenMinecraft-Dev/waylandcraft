@@ -1,4 +1,4 @@
-package dev.evvie.waylandcraft;
+package dev.evvie.waylandcraft.displays;
 
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
@@ -6,15 +6,16 @@ import org.lwjgl.glfw.GLFW;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
 
+import dev.evvie.waylandcraft.WaylandCraft;
 import dev.evvie.waylandcraft.bridge.WLCAbstractWindow;
 import dev.evvie.waylandcraft.bridge.WLCSurface;
 import dev.evvie.waylandcraft.bridge.WLCToplevel;
 import dev.evvie.waylandcraft.math.WorldPlane;
 import dev.evvie.waylandcraft.render.RenderUtils;
 import dev.evvie.waylandcraft.utils.WaylandCraftUtils;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.util.Mth;
@@ -24,114 +25,38 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
-public class WindowDisplay {
+public class WindowDisplay extends AbstractWindowDisplay {
 	
 	public final WLCAbstractWindow window;
-	
-	// World position of window
-	public Vec3 pivot = new Vec3(0, 0, 0);
-	
-	// Window facing direction normal
-	private Vec3 normal = new Vec3(0, 0, 1);
-	
-	// Window orientation downwards vector, has to be orthogonal to `normal` and normalized
-	private Vec3 down = new Vec3(0, -1, 0);
-
 	public double anchorDistance = 2.0;
-
-	private int width;
-	private int height;
 	
 	public WindowDisplay(WLCAbstractWindow window) {
 		this.window = window;
 		this.updateGeometry();
 	}
 	
+	@Override
 	public boolean isValid() {
 		return window.isAlive() && window.framebuffer != null && window.framebuffer.isValid();
 	}
 	
-	public void rotate(Vec3 normal, Vec3 down) {
-		this.normal = normal;
-		this.down = down;
-	}
-	
-	public Vec3 normal() {
-		return normal;
-	}
-	
-	public Vec3 down() {
-		return down;
-	}
-	
-	public Vec3 right() {
-		return normal.cross(down);
-	}
-	
-	public float pixelScale() {
-		return 1.0f / WaylandCraft.instance.settings.getPixelsPerBlock();
-	}
-	
-	public Vec3 localX() {
-		return right().scale(pixelScale());
-	}
-	
-	public Vec3 localY() {
-		return down.scale(pixelScale());
-	}
-	
-	// World coordinates of the window geometry origin
-	public Vec3 origin() {
-		return pivot.add(localX().scale(-width/2)).add(localY().scale(-height/2));
-	}
-	
-	public WorldPlane getPlane() {
-		return new WorldPlane(origin(), localX(), localY(), normal);
-	}
-	
-	public Vec3 localToWorld(double x, double y, double z) {
-		return getPlane().localToWorld(x, y, z);
-	}
-	
-	public void moveOrigin(Vec3 pos) {
-		pivot = pos.add(localX().scale(width/2)).add(localY().scale(height/2));
-	}
-	
+	@Override
 	public void updateGeometry() {
+		setPixelScale(1.0f / WaylandCraft.instance.settings.getPixelsPerBlock());
 		width = window.geometry.width();
 		height = window.geometry.height();
+		geometryX = window.geometry.x();
+		geometryY = window.geometry.y();
 	}
 	
-	public void render(LevelRenderContext ctx) {
-		if(window.framebuffer == null) return;
-		updateGeometry();
-		
-		int xoff = window.framebuffer.getXOff();
-		int yoff = window.framebuffer.getYOff();
-		int bufWidth = window.framebuffer.getWidth();
-		int bufHeight = window.framebuffer.getHeight();
-		
-		Vec3 localX = localX();
-		Vec3 localY = localY();
-		
-		Vec3 cameraPos = ctx.levelState().cameraRenderState.pos;
-		Vec3 originRel = origin().subtract(cameraPos);
-		
-		Vec3 bufOffset = localX.scale(-xoff - window.geometry.x()).add(localY.scale(-yoff - window.geometry.y()));
-		
-		PoseStack poseStack = ctx.poseStack();
-		poseStack.pushPose();
-		poseStack.translate(originRel.x, originRel.y, originRel.z);
-		RenderUtils.renderFramebuffer(window.framebuffer, poseStack, ctx.submitNodeCollector(), true, bufOffset, localX.scale(bufWidth), localY.scale(bufHeight));
-		poseStack.popPose();
+	@Override
+	public void renderFramebuffer(PoseStack poseStack, SubmitNodeCollector collector, Vec3 origin, Vec3 spanX, Vec3 spanY) {
+		RenderUtils.renderFramebuffer(window.framebuffer, poseStack, collector, true, origin, spanX, spanY);
 	}
 	
-	/* Transform absolute world coordinates to surface-local pixel coordinates relative to toplevel (0, 0)
-	 * 
-	 * The resulting vector is the (x, y) pixel location and the z value is the block distance normal to the plane.
-	 */
-	public Vec3 worldToLocal(Vec3 in) {
-		return getPlane().worldToLocal(in);
+	@Override
+	public @Nullable FramebufferRenderable getFramebuffer() {
+		return window.framebuffer;
 	}
 	
 	/* Perform ray-window plane intersection

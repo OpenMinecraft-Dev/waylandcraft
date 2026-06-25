@@ -5,10 +5,10 @@ import java.util.ArrayList;
 import org.jetbrains.annotations.Nullable;
 
 import dev.evvie.waylandcraft.WaylandCraft;
-import dev.evvie.waylandcraft.WindowDisplay;
-import dev.evvie.waylandcraft.WindowDisplay.DisplayHitResult;
 import dev.evvie.waylandcraft.bridge.WLCAbstractWindow;
 import dev.evvie.waylandcraft.bridge.WLCSurface;
+import dev.evvie.waylandcraft.displays.WindowDisplay;
+import dev.evvie.waylandcraft.displays.WindowDisplay.DisplayHitResult;
 import net.minecraft.world.phys.Vec3;
 
 public class PointerGrabMap {

@@ -272,7 +272,7 @@ public class WaylandCraftBridge {
 		profiler.push("wayland");
 		
 		// Update wayland clients
-		profiler.push("update");
+		profiler.push("update clients");
 		update(this.instance);
 		profiler.pop();
 		
@@ -306,7 +306,7 @@ public class WaylandCraftBridge {
 			surface.visited = false;
 		}
 		
-		profiler.push("surfaces");
+		profiler.push("update surface tree");
 		// Create new toplevels when necessary
 		// Update surface tree geometry and properties of all toplevels
 		for(long handle : toplevelHandles) {
@@ -371,6 +371,7 @@ public class WaylandCraftBridge {
 		
 		List<WLCAbstractWindow> allWindows = Stream.of(toplevels, popups).flatMap((l) -> l.stream()).collect(Collectors.toList());
 		
+		profiler.push("update surface data");
 		// Update all surface buffers
 		for(WLCAbstractWindow window : allWindows) {
 			WLCSurface root = window.getSurfaceTree();
@@ -379,6 +380,7 @@ public class WaylandCraftBridge {
 				calculateSubpos(surface);
 			}
 		}
+		profiler.pop();
 		
 		for(WLCToplevel toplevel : toplevels) {
 			boolean mapped = toplevel.isMapped();

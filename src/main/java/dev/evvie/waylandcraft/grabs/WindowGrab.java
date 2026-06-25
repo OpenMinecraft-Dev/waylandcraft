@@ -1,6 +1,6 @@
 package dev.evvie.waylandcraft.grabs;
 
-import dev.evvie.waylandcraft.WindowDisplay;
+import dev.evvie.waylandcraft.displays.WindowDisplay;
 import net.minecraft.world.phys.Vec3;
 
 public class WindowGrab extends PointerGrab {

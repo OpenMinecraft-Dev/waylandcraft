@@ -1,9 +1,9 @@
 package dev.evvie.waylandcraft.grabs;
 
-import dev.evvie.waylandcraft.WindowDisplay;
-import dev.evvie.waylandcraft.WindowDisplay.DisplayHitResult;
 import dev.evvie.waylandcraft.bridge.WLCAbstractWindow.SurfaceGeometry;
 import dev.evvie.waylandcraft.bridge.WLCToplevel;
+import dev.evvie.waylandcraft.displays.WindowDisplay;
+import dev.evvie.waylandcraft.displays.WindowDisplay.DisplayHitResult;
 import dev.evvie.waylandcraft.grabs.PointerGrabMap.ImplicitGrab;
 import net.minecraft.world.phys.Vec3;
 
