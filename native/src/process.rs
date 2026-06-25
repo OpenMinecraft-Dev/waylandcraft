@@ -17,10 +17,15 @@ where
         .stderr(Stdio::null());
 
     // Remove evil environment variables of the devil
+    // When the game is launched it inherits a lot of environment variables
+    // by the game launcher that shouldn't be passed to its clients
     command
         .env_remove("DISPLAY")
         .env_remove("WAYLAND_DISPLAY")
-        .env_remove("LD_LIBRARY_PATH");
+        .env_remove("LD_LIBRARY_PATH")
+        .env_remove("RUST_BACKTRACE")
+        .env_remove("NO_COLOR")
+        .env_remove("__GL_THREADED_OPTIMIZATIONS");
 
     command.envs(env);
 
