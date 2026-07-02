@@ -44,6 +44,7 @@ use smithay::{
 };
 use std::ops::DerefMut;
 use std::path::PathBuf;
+use std::time::Duration;
 use thiserror::Error;
 
 #[allow(clippy::vec_box)]
@@ -106,9 +107,13 @@ bind_java_type! {
             sig = (instance: jlong),
             fn = shutdown,
         },
-        static extern fn update {
+        static extern fn dispatch_clients {
             sig = (instance: jlong),
-            fn = update,
+            fn = dispatch_clients,
+        },
+        static extern fn flush_display {
+            sig = (instance: jlong),
+            fn = flush_display
         },
         static extern fn socket {
             sig = (instance: jlong) -> JString,
@@ -485,12 +490,26 @@ fn shutdown<'local>(
     Ok(())
 }
 
-fn update<'local>(
+fn dispatch_clients<'local>(
     _env: &mut Env<'local>,
     _class: JClass<'local>,
     instance: jlong,
 ) -> Result<(), BridgeError> {
-    jptr_to_instance!(instance, "update")?.update();
+    let instance = jptr_to_instance!(instance, "dispatchClients")?;
+    instance.event_loop
+        .dispatch(Some(Duration::ZERO), &mut instance.state)
+        .unwrap();
+
+    Ok(())
+}
+
+fn flush_display<'local>(
+    _env: &mut Env<'local>,
+    _class: JClass<'local>,
+    instance: jlong,
+) -> Result<(), BridgeError> {
+    let instance = jptr_to_instance!(instance, "flushDisplay")?;
+    instance.state.display_handle.flush_clients().unwrap();
 
     Ok(())
 }

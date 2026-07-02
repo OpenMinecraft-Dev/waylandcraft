@@ -271,9 +271,9 @@ public class WaylandCraftBridge {
 		ProfilerFiller profiler = Profiler.get();
 		profiler.push("wayland");
 		
-		// Update wayland clients
-		profiler.push("update clients");
-		update(this.instance);
+		// Dispatch wayland client events
+		profiler.push("dispatch clients");
+		dispatchClients(instance);
 		profiler.pop();
 		
 		// Find all available toplevels and delete ones that no longer exist
@@ -402,6 +402,9 @@ public class WaylandCraftBridge {
 		for(WLCSurface surface : surfaces) {
 			sendFrame(surface.getHandle());
 		}
+		
+		// Flush outgoing display buffers
+		flushDisplay(instance);
 		
 		profiler.pop();
 	}
@@ -699,7 +702,8 @@ public class WaylandCraftBridge {
 	
 	private static native long init(long glfwGetProcAddress, long eglDisplay);
 	private static native void shutdown(long instance);
-	private static native void update(long instance);
+	private static native void dispatchClients(long instance);
+	private static native void flushDisplay(long instance);
 	private static native String socket(long instance);
 	private static native String x11Display(long instance);
 	private static native void sendFrame(long surfaceHandle);

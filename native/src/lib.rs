@@ -43,7 +43,6 @@ use smithay::{
 };
 use std::ffi::OsString;
 use std::sync::Arc;
-use std::time::Duration;
 
 mod bridge;
 mod ddm;
@@ -340,15 +339,6 @@ pub(crate) fn wlc_init(
         xdg,
     };
     Ok(instance)
-}
-
-impl<'a> WaylandCraft<'a> {
-    pub fn update(&mut self) {
-        let state = &mut self.state;
-        let event_loop = &mut self.event_loop;
-        event_loop.dispatch(Some(Duration::ZERO), state).unwrap();
-        state.display_handle.flush_clients().unwrap();
-    }
 }
 
 delegate_compositor!(WLCState);
