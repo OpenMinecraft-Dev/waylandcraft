@@ -8,17 +8,24 @@ import net.minecraft.world.phys.Vec3;
 
 // Math helper object representing plane in 3d space
 public class WorldPlane {
-	
+
 	public final Vec3 origin;
 	public final Vec3 localX;
 	public final Vec3 localY;
 	public final Vec3 localZ;
+    public final Matrix3d matrix;
 	
 	public WorldPlane(Vec3 origin, Vec3 localX, Vec3 localY, Vec3 localZ) {
 		this.origin = origin;
 		this.localX = localX;
 		this.localY = localY;
 		this.localZ = localZ;
+
+        matrix = new Matrix3d(
+                localX.x, localX.y, localX.z, // Column 0
+                localY.x, localY.y, localY.z, // Column 1
+                localZ.x, localZ.y, localZ.z  // Column 2
+        ).invert();
 	}
 	
 	public Vec3 localToWorld(double x, double y, double z) {
@@ -27,13 +34,6 @@ public class WorldPlane {
 	
 	public Vec3 worldToLocal(Vec3 in) {
 		Vec3 relative = in.subtract(origin);
-		
-		Matrix3d matrix = new Matrix3d(
-			localX.x, localX.y, localX.z, // Column 0
-			localY.x, localY.y, localY.z, // Column 1
-			localZ.x, localZ.y, localZ.z  // Column 2
-		);
-		matrix.invert();
 		
 		Vector3d result = matrix.transform(new Vector3d(relative.x, relative.y, relative.z));
 		return new Vec3(result.x, result.y, result.z);
@@ -62,7 +62,6 @@ public class WorldPlane {
 		return new Intersection(hitPos, localCoords, dist);
 	}
 	
-	public static record Intersection(Vec3 world, Vec3 local, double dist) {
-	}
-	
+	public record Intersection(Vec3 world, Vec3 local, double dist) {
+    }
 }

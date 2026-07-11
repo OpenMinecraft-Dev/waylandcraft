@@ -10,6 +10,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import dev.evvie.waylandcraft.network.ServerboundFrameUpdatePayload;
+import it.unimi.dsi.fastutil.objects.Object2LongArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2LongMap;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.Minecraft;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
@@ -266,7 +271,7 @@ public class WaylandCraftBridge {
 			}
 		}
 	}
-	
+
 	public void update() {
 		ProfilerFiller profiler = Profiler.get();
 		profiler.push("wayland");
@@ -408,7 +413,7 @@ public class WaylandCraftBridge {
 		
 		profiler.pop();
 	}
-	
+
 	private void updateFramebuffers() {
 		List<WLCAbstractWindow> allWindows = Stream.of(toplevels, popups).flatMap((l) -> l.stream()).collect(Collectors.toList());
 		
@@ -418,7 +423,7 @@ public class WaylandCraftBridge {
 				window.framebuffer = new WindowFramebuffer(window.getSurfaceTree());
 				framebuffers.add(window.framebuffer);
 			}
-			window.framebuffer.render();
+			window.framebuffer.render(window);
 		}
 		
 		// Render dnd icon
@@ -427,7 +432,7 @@ public class WaylandCraftBridge {
 				dndIcon.framebuffer = new WindowFramebuffer(dndIcon.surface);
 				framebuffers.add(dndIcon.framebuffer);
 			}
-			dndIcon.framebuffer.render();
+			dndIcon.framebuffer.render(null);
 		}
 		
 		// Cleanup unused framebuffers

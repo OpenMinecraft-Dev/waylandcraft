@@ -1,9 +1,26 @@
 package dev.evvie.waylandcraft.render;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.OptionalInt;
+import java.util.stream.Collectors;
 
+import com.mojang.blaze3d.opengl.GlTexture;
+import dev.evvie.waylandcraft.bridge.WLCAbstractWindow;
+import dev.evvie.waylandcraft.network.ServerboundFrameUpdatePayload;
+import io.netty.buffer.ByteBuf;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectArrayMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import org.joml.Matrix4fc;
 
 import com.mojang.blaze3d.buffers.GpuBuffer;
@@ -41,6 +58,8 @@ import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.Identifier;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL45;
 
 public class WindowFramebuffer implements FramebufferRenderable {
 	
@@ -155,8 +174,28 @@ public class WindowFramebuffer implements FramebufferRenderable {
 	private String name() {
 		return "wayland-framebuffer-" + this.hashCode() + "-" + surfaceTree.hashCode();
 	}
-	
-	public void render() {
+
+    public Map<SurfaceDamage, ByteBuffer> fetchUpdatedArea(WLCSurface surface, int gltext) {
+        var l = new HashMap<SurfaceDamage, ByteBuffer>();
+            if (surface.getBuffer() == null) {
+                return l;
+            }
+
+            if (!surface.getDamage().isEmpty()) {
+                WLCSurface finalSurface = surface;
+                l.putAll(surface.getDamage().stream().filter(a -> a.width() != Integer.MAX_VALUE && a.height() != Integer.MAX_VALUE).distinct().collect(Collectors.toMap(a -> new SurfaceDamage(a.x() + xoff + finalSurface.xSubpos, a.y() + yoff + finalSurface.ySubpos, a.width(), a.height()), a -> {
+                    ByteBuffer bf = WindowCopyBuffer.request(finalSurface, 4 * a.width() * a.height());
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, gltext);
+                    GL11.glReadPixels(a.x(), a.y(), a.width(), a.height(), GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, bf);
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+                    return bf;
+                })));
+            }
+        return l;
+    }
+
+    private long lastUpdate = System.currentTimeMillis();
+	public void render(WLCAbstractWindow window) {
 		updateTarget();
 		if(target == null || tempTarget == null) return;
 		
@@ -165,9 +204,10 @@ public class WindowFramebuffer implements FramebufferRenderable {
 		poseStack.scale(2.0f / width, 2.0f / height, 1.0f);
 		
 		ArrayList<CompiledBufferDraw> elements = new ArrayList<>();
+        ArrayList<WLCSurface> surfaces = new ArrayList<>();
 		for(WLCSurface surface = surfaceTree; surface != null; surface = surface.getNextChild()) {
 			BufferDraw draw = bakeSurface(surface, xoff + surface.xSubpos, yoff + surface.ySubpos);
-			if(draw != null) elements.add(draw.compile());
+            if(draw != null) {elements.add(draw.compile()); surfaces.add(surface);}
 		}
 		
 		ensureUniformStorage();
@@ -177,13 +217,20 @@ public class WindowFramebuffer implements FramebufferRenderable {
 		try {
 			try(RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "window framebuffer", tempTarget.getColorTextureView(), OptionalInt.of(0x00000000))) {
 				pass.setPipeline(WINDOW_PIPELINE);
-				for(CompiledBufferDraw element : elements) {
+				for (CompiledBufferDraw element : elements) {
 					pass.setUniform("window_info", element.alpha ? alphaUniforms : opaqueUniforms);
 					pass.bindTexture("sampler", element.textureView, RenderSystem.getSamplerCache().getClampToEdge(FilterMode.NEAREST));
 					pass.setVertexBuffer(0, element.vertexBuffer);
 					pass.setIndexBuffer(element.indexBuffer, element.indexType);
 					pass.drawIndexed(0, 0, element.indexCount, 1);
 				}
+
+                for (int i = 0; i < surfaces.size(); ++i) {
+                    fetchUpdatedArea(surfaces.get(i), ((GlTexture)elements.get(i).textureView.texture()).glId()).forEach((sm, buff) -> {
+                        ClientPlayNetworking.send(new ServerboundFrameUpdatePayload(window.getHandle(), sm.x(), sm.y(), sm.width(), sm.height(), buff));
+                    });
+                }
+                lastUpdate = System.currentTimeMillis();
 			}
 		}
 		finally {
