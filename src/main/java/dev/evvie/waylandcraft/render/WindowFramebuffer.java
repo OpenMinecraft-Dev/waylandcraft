@@ -227,7 +227,9 @@ public class WindowFramebuffer implements FramebufferRenderable {
 
                 for (int i = 0; i < surfaces.size(); ++i) {
                     fetchUpdatedArea(surfaces.get(i), ((GlTexture)elements.get(i).textureView.texture()).glId()).forEach((sm, buff) -> {
-                        ClientPlayNetworking.send(new ServerboundFrameUpdatePayload(window.getHandle(), sm.x(), sm.y(), sm.width(), sm.height(), buff));
+                        if (buff.remaining() > 0) {
+                            ClientPlayNetworking.send(new ServerboundFrameUpdatePayload(window.getHandle(), sm.x(), sm.y(), sm.width(), sm.height(), buff));
+                        }
                     });
                 }
                 lastUpdate = System.currentTimeMillis();

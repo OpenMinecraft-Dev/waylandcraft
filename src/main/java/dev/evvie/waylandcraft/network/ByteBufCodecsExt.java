@@ -14,6 +14,7 @@ public interface ByteBufCodecsExt {
         public ByteBuffer decode(ByteBuf input) {
             try {
                 var length = input.readInt();
+                logger.info("read {} bytes", length);
                 var result = ByteBuffer.allocate(length); // WindowCopyBuffer.requestRead(length);
                 input.readBytes(result);
                 return result;
@@ -28,6 +29,7 @@ public interface ByteBufCodecsExt {
         public void encode(ByteBuf output, ByteBuffer value) {
             output.writeInt(value.limit());
             output.writeBytes(value);
+            logger.info("write {} bytes", value.limit());
         }
     };
 }
