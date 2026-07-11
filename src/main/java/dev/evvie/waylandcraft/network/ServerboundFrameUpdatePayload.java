@@ -9,12 +9,12 @@ import net.minecraft.resources.Identifier;
 
 import java.nio.ByteBuffer;
 
-public record ServerboundFrameUpdatePayload(long windowHandle, int x, int y, int w, int h, ByteBuffer buffer) implements CustomPacketPayload {
+public record ServerboundFrameUpdatePayload(long windowHandle, int x, int y, int w, int h, ByteBuffer buffer, int windowWidth, int windowHeight) implements CustomPacketPayload {
     public static final Identifier FRAME_UPDATE_PAYLOAD_ID = Identifier.fromNamespaceAndPath(WaylandCraftCommon.MOD_ID, "frame_update");
 
     public static final CustomPacketPayload.Type<ServerboundFrameUpdatePayload> TYPE = new CustomPacketPayload.Type<>(FRAME_UPDATE_PAYLOAD_ID);
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundFrameUpdatePayload> CODEC = StreamCodec.composite(ByteBufCodecs.LONG, ServerboundFrameUpdatePayload::windowHandle, ByteBufCodecs.VAR_INT, ServerboundFrameUpdatePayload::x, ByteBufCodecs.VAR_INT, ServerboundFrameUpdatePayload::y, ByteBufCodecs.VAR_INT, ServerboundFrameUpdatePayload::w, ByteBufCodecs.VAR_INT, ServerboundFrameUpdatePayload::h, ByteBufCodecsExt.COMPRESSED_BYTE_BUFFER, ServerboundFrameUpdatePayload::buffer, ServerboundFrameUpdatePayload::new);
+    public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundFrameUpdatePayload> CODEC = StreamCodec.composite(ByteBufCodecs.LONG, ServerboundFrameUpdatePayload::windowHandle, ByteBufCodecs.VAR_INT, ServerboundFrameUpdatePayload::x, ByteBufCodecs.VAR_INT, ServerboundFrameUpdatePayload::y, ByteBufCodecs.VAR_INT, ServerboundFrameUpdatePayload::w, ByteBufCodecs.VAR_INT, ServerboundFrameUpdatePayload::h, ByteBufCodecsExt.COMPRESSED_BYTE_BUFFER, ServerboundFrameUpdatePayload::buffer, ByteBufCodecs.VAR_INT, ServerboundFrameUpdatePayload::windowWidth, ByteBufCodecs.VAR_INT, ServerboundFrameUpdatePayload::windowHeight, ServerboundFrameUpdatePayload::new);
 
     @Override
     public Type<? extends CustomPacketPayload> type() {

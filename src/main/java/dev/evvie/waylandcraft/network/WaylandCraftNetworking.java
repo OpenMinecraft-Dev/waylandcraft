@@ -1,16 +1,13 @@
 package dev.evvie.waylandcraft.network;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import dev.evvie.waylandcraft.WaylandCraftCommon;
-import dev.evvie.waylandcraft.bridge.WaylandCraftBridge;
 import dev.evvie.waylandcraft.utils.IMyServerPlayer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -22,6 +19,15 @@ public class WaylandCraftNetworking {
 		PayloadTypeRegistry.serverboundPlay().register(ServerboundGiveItemsPayload.TYPE, ServerboundGiveItemsPayload.CODEC);
 		PayloadTypeRegistry.serverboundPlay().register(ServerboundAliveWindowsPayload.TYPE, ServerboundAliveWindowsPayload.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(ServerboundFrameUpdatePayload.TYPE, ServerboundFrameUpdatePayload.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(ServerboundTitleUpdatePayload.TYPE, ServerboundTitleUpdatePayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(ClientboundFrameUpdateSyncPayload.TYPE, ClientboundFrameUpdateSyncPayload.CODEC);
+
+        ClientPlayNetworking.registerGlobalReceiver(ClientboundFrameUpdateSyncPayload.TYPE, (payload, ctx) -> {
+            if (payload.buffer() != null) {
+                payload.buffer().rewind();
+                System.out.println(payload);
+            }
+        });
 
 		ServerPlayNetworking.registerGlobalReceiver(ServerboundAliveWindowsPayload.TYPE, (payload, ctx) -> {
 			IMyServerPlayer plr = (IMyServerPlayer) ctx.player();
@@ -34,21 +40,30 @@ public class WaylandCraftNetworking {
 		});
 		
 		ServerPlayNetworking.registerGlobalReceiver(ServerboundGiveItemsPayload.TYPE, WaylandCraftCommon.instance.serverItemManager::handleGiveItemsPayload);
+        ServerPlayNetworking.registerGlobalReceiver(ServerboundTitleUpdatePayload.TYPE, ((payload, ctx) -> {
+            System.out.println("window title updated to " + payload.title());
+        }));
 
         ServerPlayNetworking.registerGlobalReceiver(ServerboundFrameUpdatePayload.TYPE, (payload, ctx) -> {
+            if (payload.buffer() == null) {
+                return;
+            }
             // System.out.println(payload);
-            // System.out.println("reveiced window data of " + payload.windowHandle());
+            System.out.println("reveiced window data of " + payload.windowHandle());
 
-            /*Path path = Paths.get(String.format("%x-%dx%d@%dx%d.bin", payload.windowHandle(), payload.w(), payload.h(), payload.x(), payload.y()));
+            try (FileChannel channel = FileChannel.open(Path.of(payload.windowHandle() + "-" + payload.w() + "," + payload.h() + ".bin"),
+                    StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
+                channel.write(payload.buffer().rewind()); // 写入 directBuf 中从 position 到 limit 的所有数据
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
-            if (payload.buffer().remaining() > 0) {
-                try (FileChannel channel = FileChannel.open(path,
-                        StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-                    channel.write(payload.buffer());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }*/
+            Arrays.stream(ctx.server().getPlayerNames())
+                    // .filter(a -> !a.equals(ctx.player().getPlainTextName()))
+                    .map(a -> ctx.server().getPlayerList().getPlayerByName(a))
+                    .forEach(p -> {
+                ServerPlayNetworking.send(p, new ClientboundFrameUpdateSyncPayload(ctx.player().getGameProfile(), payload.windowHandle(), payload.x(), payload.y(), payload.w(), payload.h(), payload.buffer().rewind(), payload.windowWidth(), payload.windowHeight()));
+            });
         });
 	}
 }

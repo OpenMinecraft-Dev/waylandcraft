@@ -234,7 +234,7 @@ public class WindowFramebuffer implements FramebufferRenderable {
                     for (int i = 0; i < surfaces.size(); ++i) {
                         fetchUpdatedArea(surfaces.get(i), ((GlTexture) elements.get(i).textureView.texture()).glId()).forEach((sm, buff) -> {
                             if (buff.remaining() > 0 && Minecraft.getInstance().getConnection() != null) {
-                                ClientPlayNetworking.send(new ServerboundFrameUpdatePayload(window.getHandle(), sm.x(), sm.y(), sm.width(), sm.height(), buff));
+                                ClientPlayNetworking.send(new ServerboundFrameUpdatePayload(window.getHandle(), sm.x(), sm.y(), sm.width(), sm.height(), buff, width, height));
                             }
                         });
                     }

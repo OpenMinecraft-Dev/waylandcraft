@@ -6,9 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
-import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
-import java.util.zip.Inflater;
 
 public interface ByteBufCodecsExt {
     Logger logger = LoggerFactory.getLogger("Custom Codecs");
@@ -19,7 +17,7 @@ public interface ByteBufCodecsExt {
         return expanded;
     }
     static ByteBuffer compress(ByteBuffer input) {
-        Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION, true);
+        Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION, false);
         try {
             deflater.setInput(input);
             deflater.finish();
