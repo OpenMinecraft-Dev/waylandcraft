@@ -3,6 +3,10 @@ package dev.evvie.waylandcraft.network;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 
 import dev.evvie.waylandcraft.WaylandCraftCommon;
@@ -32,8 +36,19 @@ public class WaylandCraftNetworking {
 		ServerPlayNetworking.registerGlobalReceiver(ServerboundGiveItemsPayload.TYPE, WaylandCraftCommon.instance.serverItemManager::handleGiveItemsPayload);
 
         ServerPlayNetworking.registerGlobalReceiver(ServerboundFrameUpdatePayload.TYPE, (payload, ctx) -> {
-            System.out.println(payload);
-            System.out.println("reveiced window data of " + payload.windowHandle());
+            // System.out.println(payload);
+            // System.out.println("reveiced window data of " + payload.windowHandle());
+
+            /*Path path = Paths.get(String.format("%x-%dx%d@%dx%d.bin", payload.windowHandle(), payload.w(), payload.h(), payload.x(), payload.y()));
+
+            if (payload.buffer().remaining() > 0) {
+                try (FileChannel channel = FileChannel.open(path,
+                        StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
+                    channel.write(payload.buffer());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }*/
         });
 	}
 }

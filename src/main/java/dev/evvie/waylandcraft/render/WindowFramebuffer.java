@@ -183,7 +183,12 @@ public class WindowFramebuffer implements FramebufferRenderable {
 
             if (!surface.getDamage().isEmpty()) {
                 WLCSurface finalSurface = surface;
-                l.putAll(surface.getDamage().stream().filter(a -> a.width() != Integer.MAX_VALUE && a.height() != Integer.MAX_VALUE).distinct().collect(Collectors.toMap(a -> new SurfaceDamage(a.x() + xoff + finalSurface.xSubpos, a.y() + yoff + finalSurface.ySubpos, a.width(), a.height()), a -> {
+                l.putAll(surface.getDamage().stream().distinct().map(a -> {
+                    if (a.width() == Integer.MAX_VALUE || a.height() == Integer.MAX_VALUE) {
+                        return new SurfaceDamage(0, 0, finalSurface.width(), finalSurface.height());
+                    }
+                    return a;
+                }).collect(Collectors.toMap(a -> new SurfaceDamage(a.x() + xoff + finalSurface.xSubpos, a.y() + yoff + finalSurface.ySubpos, a.width(), a.height()), a -> {
                     ByteBuffer bf = WindowCopyBuffer.request(finalSurface, 4 * a.width() * a.height());
                     GL11.glBindTexture(GL11.GL_TEXTURE_2D, gltext);
                     GL11.glReadPixels(a.x(), a.y(), a.width(), a.height(), GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, bf);
@@ -225,14 +230,16 @@ public class WindowFramebuffer implements FramebufferRenderable {
 					pass.drawIndexed(0, 0, element.indexCount, 1);
 				}
 
-                for (int i = 0; i < surfaces.size(); ++i) {
-                    fetchUpdatedArea(surfaces.get(i), ((GlTexture)elements.get(i).textureView.texture()).glId()).forEach((sm, buff) -> {
-                        if (buff.remaining() > 0) {
-                            ClientPlayNetworking.send(new ServerboundFrameUpdatePayload(window.getHandle(), sm.x(), sm.y(), sm.width(), sm.height(), buff));
-                        }
-                    });
+                if (System.currentTimeMillis() - lastUpdate >= 0) {
+                    for (int i = 0; i < surfaces.size(); ++i) {
+                        fetchUpdatedArea(surfaces.get(i), ((GlTexture) elements.get(i).textureView.texture()).glId()).forEach((sm, buff) -> {
+                            if (buff.remaining() > 0 && Minecraft.getInstance().getConnection() != null) {
+                                ClientPlayNetworking.send(new ServerboundFrameUpdatePayload(window.getHandle(), sm.x(), sm.y(), sm.width(), sm.height(), buff));
+                            }
+                        });
+                    }
+                    lastUpdate = System.currentTimeMillis();
                 }
-                lastUpdate = System.currentTimeMillis();
 			}
 		}
 		finally {

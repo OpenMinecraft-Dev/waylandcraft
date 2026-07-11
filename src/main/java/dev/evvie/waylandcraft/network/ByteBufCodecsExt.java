@@ -6,30 +6,82 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
+import java.util.zip.DataFormatException;
+import java.util.zip.Deflater;
+import java.util.zip.Inflater;
 
 public interface ByteBufCodecsExt {
     Logger logger = LoggerFactory.getLogger("Custom Codecs");
-    StreamCodec<ByteBuf, ByteBuffer> BYTEBUFFER = new StreamCodec<>() {
+    private static ByteBuffer expandBuffer(ByteBuffer original, int newCapacity) {
+        ByteBuffer expanded = ByteBuffer.allocateDirect(newCapacity);
+        original.flip();
+        expanded.put(original);
+        return expanded;
+    }
+    static ByteBuffer compress(ByteBuffer input) {
+        Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION, true);
+        try {
+            deflater.setInput(input);
+            deflater.finish();
+
+            int maxOutput = input.remaining() + 32;
+            ByteBuffer output = ByteBuffer.allocateDirect(maxOutput);
+
+            while (!deflater.finished()) {
+                if (!output.hasRemaining()) {
+                    output = expandBuffer(output, output.capacity() * 2);
+                }
+                try {
+                    int len = deflater.deflate(output);
+                }
+                catch (Exception e) {
+                    output = expandBuffer(output, output.capacity() * 2);
+                }
+            }
+            output.flip();
+            return output;
+        } finally {
+            deflater.end();
+        }
+    }
+
+    StreamCodec<ByteBuf, ByteBuffer> COMPRESSED_BYTE_BUFFER = new StreamCodec<>() {
         @Override
         public ByteBuffer decode(ByteBuf input) {
             try {
+                var targetLength = input.readInt();
                 var length = input.readInt();
-                logger.info("read {} bytes", length);
-                var result = ByteBuffer.allocate(length); // WindowCopyBuffer.requestRead(length);
-                input.readBytes(result);
-                return result;
+                if (length > 0) {
+                    logger.info("{} (rate {}) bytes of compressed frame", length, (1 - length / (double) targetLength) * 100.0);
+                }
+                var buf = ByteBuffer.allocateDirect(length);
+                input.readBytes(buf);
+                return buf;
             }
             catch (Exception e) {
-                logger.warn("failed to receive data", e);
+                // logger.warn("failed to receive data", e);
                 return null;
             }
         }
 
         @Override
         public void encode(ByteBuf output, ByteBuffer value) {
-            output.writeInt(value.limit());
-            output.writeBytes(value);
-            logger.info("write {} bytes", value.limit());
+            if (value.remaining() <= 0) {
+                output.writeInt(-1);
+                output.writeInt(-1);
+                return;
+            }
+            output.writeInt(value.remaining());
+            ByteBuffer temp = compress(value);
+            try {
+                int compressedLen = temp.remaining();
+                output.writeInt(compressedLen);
+                output.writeBytes(temp);
+
+                logger.info("transfered {} bytes", compressedLen);
+            } catch (Exception e) {
+                logger.warn("compress fail", e);
+            }
         }
     };
 }
