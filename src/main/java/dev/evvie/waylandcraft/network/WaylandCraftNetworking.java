@@ -1,20 +1,28 @@
 package dev.evvie.waylandcraft.network;
 
 import java.io.IOException;
+import java.lang.foreign.Arena;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.zip.DataFormatException;
+import java.util.zip.Deflater;
+import java.util.zip.Inflater;
 
+import com.mojang.blaze3d.platform.NativeImage;
 import dev.evvie.waylandcraft.WaylandCraftCommon;
+import dev.evvie.waylandcraft.render.RemoteWindowManager;
 import dev.evvie.waylandcraft.utils.IMyServerPlayer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class WaylandCraftNetworking {
-	
 	public static void register() {
 		PayloadTypeRegistry.serverboundPlay().register(ServerboundGiveItemsPayload.TYPE, ServerboundGiveItemsPayload.CODEC);
 		PayloadTypeRegistry.serverboundPlay().register(ServerboundAliveWindowsPayload.TYPE, ServerboundAliveWindowsPayload.CODEC);
@@ -24,8 +32,15 @@ public class WaylandCraftNetworking {
 
         ClientPlayNetworking.registerGlobalReceiver(ClientboundFrameUpdateSyncPayload.TYPE, (payload, ctx) -> {
             if (payload.buffer() != null) {
-                payload.buffer().rewind();
-                System.out.println(payload);
+                var seg = Arena.ofAuto().allocate((long) payload.w() * payload.h() * 4);
+                try (Inflater def = new Inflater(false)) {
+                    def.setInput(payload.buffer().rewind());
+                    def.inflate(seg.asByteBuffer());
+                } catch (DataFormatException e) {
+                    throw new RuntimeException(e);
+                }
+
+                RemoteWindowManager.handleUpdate(payload.profile(), payload.windowHandle(), payload.x(), payload.y(), payload.w(), payload.h(), payload.windowWidth(), payload.windowHeight(), seg);
             }
         });
 
@@ -50,13 +65,6 @@ public class WaylandCraftNetworking {
             }
             // System.out.println(payload);
             System.out.println("reveiced window data of " + payload.windowHandle());
-
-            try (FileChannel channel = FileChannel.open(Path.of(payload.windowHandle() + "-" + payload.w() + "," + payload.h() + ".bin"),
-                    StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-                channel.write(payload.buffer().rewind()); // 写入 directBuf 中从 position 到 limit 的所有数据
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
 
             Arrays.stream(ctx.server().getPlayerNames())
                     // .filter(a -> !a.equals(ctx.player().getPlainTextName()))

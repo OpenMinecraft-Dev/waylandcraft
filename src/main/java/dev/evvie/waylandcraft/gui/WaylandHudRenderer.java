@@ -3,6 +3,7 @@ package dev.evvie.waylandcraft.gui;
 import java.awt.Color;
 import java.util.Calendar;
 
+import dev.evvie.waylandcraft.render.RemoteWindowManager;
 import org.joml.Matrix3x2fStack;
 
 import dev.evvie.waylandcraft.WaylandCraft;
@@ -32,6 +33,7 @@ public class WaylandHudRenderer {
 	private static final Identifier APP_LIST = Identifier.fromNamespaceAndPath(WaylandCraftCommon.MOD_ID, "app-list");
 	private static final Identifier PINNED_TOPLEVEL = Identifier.fromNamespaceAndPath(WaylandCraftCommon.MOD_ID, "pinned-toplevel");
 	private static final Identifier DND_ICON = Identifier.fromNamespaceAndPath(WaylandCraftCommon.MOD_ID, "dnd-icon");
+    private static final Identifier DND_ICON2 = Identifier.fromNamespaceAndPath(WaylandCraftCommon.MOD_ID, "dnd-icon2");
 	
 	public WaylandHudRenderer(WaylandCraft wlc) {
 		this.wlc = wlc;
@@ -42,6 +44,7 @@ public class WaylandHudRenderer {
 		HudElementRegistry.attachElementAfter(VanillaHudElements.BOSS_BAR, APP_LIST, this::extractAppListRenderState);
 		HudElementRegistry.attachElementAfter(VanillaHudElements.BOSS_BAR, PINNED_TOPLEVEL, this::extractPinnedToplevelRenderState);
 		HudElementRegistry.attachElementAfter(VanillaHudElements.BOSS_BAR, DND_ICON, this::extractDNDIconRenderState);
+        HudElementRegistry.attachElementAfter(VanillaHudElements.BOSS_BAR, DND_ICON2, RemoteWindowManager::extractState);
 	}
 	
 	private void extractAppListRenderState(GuiGraphicsExtractor context, DeltaTracker deltaTracker) {

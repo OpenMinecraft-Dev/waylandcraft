@@ -82,4 +82,30 @@ public interface ByteBufCodecsExt {
             }
         }
     };
+
+    StreamCodec<ByteBuf, ByteBuffer> BYTE_BUFFER = new StreamCodec<>() {
+        @Override
+        public ByteBuffer decode(ByteBuf input) {
+            try {
+                var length = input.readInt();
+                var buf = ByteBuffer.allocateDirect(length);
+                input.readBytes(buf);
+                return buf;
+            }
+            catch (Exception e) {
+                // logger.warn("failed to receive data", e);
+                return null;
+            }
+        }
+
+        @Override
+        public void encode(ByteBuf output, ByteBuffer value) {
+            if (value.remaining() <= 0) {
+                output.writeInt(-1);
+                return;
+            }
+            output.writeInt(value.remaining());
+            output.writeBytes(value);
+        }
+    };
 }
