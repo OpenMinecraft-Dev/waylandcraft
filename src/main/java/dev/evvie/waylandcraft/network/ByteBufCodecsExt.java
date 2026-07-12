@@ -17,7 +17,7 @@ public interface ByteBufCodecsExt {
         return expanded;
     }
     static ByteBuffer compress(ByteBuffer input) {
-        Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION, false);
+        Deflater deflater = new Deflater(Deflater.BEST_SPEED, false);
         try {
             deflater.setInput(input);
             deflater.finish();
