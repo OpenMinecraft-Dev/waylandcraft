@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
-import dev.evvie.waylandcraft.network.ServerboundGiveItemsPayload;
+import dev.evvie.waylandcraft.network.serverbound.ServerboundGiveItemsPayload;
 import dev.evvie.waylandcraft.utils.IMyServerPlayer;
 import dev.evvie.waylandcraft.utils.WaylandCraftUtils;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;

@@ -1,6 +1,5 @@
 package dev.evvie.waylandcraft.network;
 
-import dev.evvie.waylandcraft.render.WindowCopyBuffer;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.slf4j.Logger;
@@ -44,7 +43,7 @@ public interface ByteBufCodecsExt {
         }
     }
 
-    StreamCodec<ByteBuf, ByteBuffer> COMPRESSED_BYTE_BUFFER = new StreamCodec<>() {
+    StreamCodec<ByteBuf, ByteBuffer> CLIENTCOMPRESS_FRAME = new StreamCodec<>() {
         @Override
         public ByteBuffer decode(ByteBuf input) {
             try {
@@ -85,7 +84,7 @@ public interface ByteBufCodecsExt {
         }
     };
 
-    StreamCodec<ByteBuf, ByteBuffer> BYTE_BUFFER = new StreamCodec<>() {
+    StreamCodec<ByteBuf, ByteBuffer> COMPRESSED_FRAME = new StreamCodec<>() {
         @Override
         public ByteBuffer decode(ByteBuf input) {
             try {

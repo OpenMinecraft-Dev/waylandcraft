@@ -44,15 +44,21 @@ public class RemoteWindowManager {
         RenderSystem.getDevice().createCommandEncoder().writeToTexture(win.get().texture.getTexture(), data, NativeImage.Format.RGBA, 0, 0, x, y, w, h);
     }
 
+    public static void handleTitleUpdate(GameProfile profile, long handle, String name) {
+        windows.stream().filter(a -> a.profile.name().equals(profile.name())).filter(a -> a.handle == handle).findFirst().ifPresent(a -> a.title = name);
+    }
+
     public static void extractState(GuiGraphicsExtractor context, DeltaTracker tracker) {
         windows.forEach(w -> {
-            context.blit(w.ident, 0, 0, 200 * w.texture.getPixels().getWidth() / w.texture.getPixels().getHeight(), 200, 0.0f, 1.0f, 0.0f, 1.0f);
+            context.blit(w.ident, 0, 30, 200 * w.texture.getPixels().getWidth() / w.texture.getPixels().getHeight(), 200 + 30,0.0f, 1.0f, 0.0f, 1.0f);
+            context.text(Minecraft.getInstance().font, w.title, 0, 0, 0xffffffff);
         });
     }
 
     public static class RemoteWindow {
         public GameProfile profile; public long handle; public DynamicTexture texture;
         public Identifier ident;
+        public String title = "";
         public RemoteWindow(GameProfile profile, long handle, DynamicTexture texture) {
             this.profile = profile;
             this.handle = handle;

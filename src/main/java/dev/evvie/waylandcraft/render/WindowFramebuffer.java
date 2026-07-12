@@ -1,25 +1,12 @@
 package dev.evvie.waylandcraft.render;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.OptionalInt;
-import java.util.stream.Collectors;
 
 import com.mojang.blaze3d.opengl.GlTexture;
 import dev.evvie.waylandcraft.bridge.WLCAbstractWindow;
-import dev.evvie.waylandcraft.network.ServerboundFrameUpdatePayload;
-import io.netty.buffer.ByteBuf;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectArrayMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import dev.evvie.waylandcraft.network.serverbound.ServerboundFrameUpdatePayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import org.joml.Matrix4fc;
 

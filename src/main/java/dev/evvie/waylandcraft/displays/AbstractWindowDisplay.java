@@ -8,6 +8,8 @@ import dev.evvie.waylandcraft.math.WorldPlane;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.world.phys.Vec3;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractWindowDisplay {
 	
@@ -27,6 +29,8 @@ public abstract class AbstractWindowDisplay {
 	protected int geometryY = 0;
 	
 	private float pixelScale;
+
+    private Logger logger = LoggerFactory.getLogger(AbstractWindowDisplay.class);
 	
 	public AbstractWindowDisplay() {
 	}
@@ -101,7 +105,7 @@ public abstract class AbstractWindowDisplay {
 		Vec3 originRel = origin().subtract(cameraPos);
 		
 		Vec3 bufOffset = localX.scale(-xoff - geometryX).add(localY.scale(-yoff - geometryY));
-		
+
 		PoseStack poseStack = ctx.poseStack();
 		poseStack.pushPose();
 		poseStack.translate(originRel.x, originRel.y, originRel.z);

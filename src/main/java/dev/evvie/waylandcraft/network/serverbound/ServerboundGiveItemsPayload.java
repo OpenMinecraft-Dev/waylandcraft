@@ -1,4 +1,4 @@
-package dev.evvie.waylandcraft.network;
+package dev.evvie.waylandcraft.network.serverbound;
 
 import dev.evvie.waylandcraft.WaylandCraftCommon;
 import net.minecraft.network.RegistryFriendlyByteBuf;

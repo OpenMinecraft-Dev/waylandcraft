@@ -1,7 +1,8 @@
-package dev.evvie.waylandcraft.network;
+package dev.evvie.waylandcraft.network.cllentbound;
 
 import com.mojang.authlib.GameProfile;
 import dev.evvie.waylandcraft.WaylandCraftCommon;
+import dev.evvie.waylandcraft.network.ByteBufCodecsExt;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -15,7 +16,7 @@ public record ClientboundFrameUpdateSyncPayload(GameProfile profile, long window
 
     public static final CustomPacketPayload.Type<ClientboundFrameUpdateSyncPayload> TYPE = new CustomPacketPayload.Type<>(FRAME_UPDATE_PAYLOAD_ID);
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundFrameUpdateSyncPayload> CODEC = StreamCodec.composite(ByteBufCodecs.GAME_PROFILE, ClientboundFrameUpdateSyncPayload::profile, ByteBufCodecs.LONG, ClientboundFrameUpdateSyncPayload::windowHandle, ByteBufCodecs.VAR_INT, ClientboundFrameUpdateSyncPayload::x, ByteBufCodecs.VAR_INT, ClientboundFrameUpdateSyncPayload::y, ByteBufCodecs.VAR_INT, ClientboundFrameUpdateSyncPayload::w, ByteBufCodecs.VAR_INT, ClientboundFrameUpdateSyncPayload::h, ByteBufCodecsExt.BYTE_BUFFER, ClientboundFrameUpdateSyncPayload::buffer, ByteBufCodecs.VAR_INT, ClientboundFrameUpdateSyncPayload::windowWidth, ByteBufCodecs.VAR_INT, ClientboundFrameUpdateSyncPayload::windowHeight, ClientboundFrameUpdateSyncPayload::new);
+    public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundFrameUpdateSyncPayload> CODEC = StreamCodec.composite(ByteBufCodecs.GAME_PROFILE, ClientboundFrameUpdateSyncPayload::profile, ByteBufCodecs.LONG, ClientboundFrameUpdateSyncPayload::windowHandle, ByteBufCodecs.VAR_INT, ClientboundFrameUpdateSyncPayload::x, ByteBufCodecs.VAR_INT, ClientboundFrameUpdateSyncPayload::y, ByteBufCodecs.VAR_INT, ClientboundFrameUpdateSyncPayload::w, ByteBufCodecs.VAR_INT, ClientboundFrameUpdateSyncPayload::h, ByteBufCodecsExt.COMPRESSED_FRAME, ClientboundFrameUpdateSyncPayload::buffer, ByteBufCodecs.VAR_INT, ClientboundFrameUpdateSyncPayload::windowWidth, ByteBufCodecs.VAR_INT, ClientboundFrameUpdateSyncPayload::windowHeight, ClientboundFrameUpdateSyncPayload::new);
 
     @Override
     public Type<? extends CustomPacketPayload> type() {

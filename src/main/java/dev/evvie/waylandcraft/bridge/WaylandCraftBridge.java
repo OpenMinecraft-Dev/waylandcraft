@@ -10,11 +10,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import dev.evvie.waylandcraft.network.ServerboundFrameUpdatePayload;
-import it.unimi.dsi.fastutil.objects.Object2LongArrayMap;
-import it.unimi.dsi.fastutil.objects.Object2LongMap;
+import dev.evvie.waylandcraft.network.serverbound.ServerboundTitleUpdatePayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.Minecraft;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
@@ -320,7 +317,11 @@ public class WaylandCraftBridge {
 			toplevel.lastChild = updateSurfaceTree(this.instance, root);
 			
 			updateGeometry(toplevel);
-			toplevel.title = toplevelTitle(toplevel.getHandle());
+            var title = toplevelTitle(toplevel.getHandle());
+            if (!title.equals(toplevel.title)) {
+                ClientPlayNetworking.send(new ServerboundTitleUpdatePayload(handle, title));
+            }
+			toplevel.title = title;
 			toplevel.appID = toplevelAppID(toplevel.getHandle());
 			
 			if(ArrayUtils.contains(minimizeRequests, handle)) toplevel.requests.minimize = true;
