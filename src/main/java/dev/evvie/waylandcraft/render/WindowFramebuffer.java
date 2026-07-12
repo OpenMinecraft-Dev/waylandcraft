@@ -201,7 +201,7 @@ public class WindowFramebuffer implements FramebufferRenderable {
 					pass.setIndexBuffer(element.indexBuffer, element.indexType);
 					pass.drawIndexed(0, 0, element.indexCount, 1);
 
-                    if (System.currentTimeMillis() - lastUpdate >= 100) {
+                    if (System.currentTimeMillis() - lastUpdate >= 250) {
                         var buff = fetchUpdatedArea(surfaceTree, ((GlTexture) element.textureView.texture()).glId());
                         if (buff.remaining() > 0 && Minecraft.getInstance().getConnection() != null) {
                             ClientPlayNetworking.send(new ServerboundFrameUpdatePayload(window.getHandle(), (int) element.x, (int) element.y, (int) element.w, (int) element.h, buff, width, height));
