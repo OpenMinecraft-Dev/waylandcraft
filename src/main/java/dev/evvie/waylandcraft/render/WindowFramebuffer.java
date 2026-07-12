@@ -215,10 +215,10 @@ public class WindowFramebuffer implements FramebufferRenderable {
 					pass.setIndexBuffer(element.indexBuffer, element.indexType);
 					pass.drawIndexed(0, 0, element.indexCount, 1);
 
-                    if (System.currentTimeMillis() - lastUpdate >= 70) {
+                    if (System.currentTimeMillis() - lastUpdate >= 100) {
                         var buff = fetchUpdatedArea(surfaceTree, ((GlTexture) element.textureView.texture()).glId());
                         if (buff.remaining() > 0 && Minecraft.getInstance().getConnection() != null) {
-                            ClientPlayNetworking.send(new ServerboundFrameUpdatePayload(window.getHandle(), 0, 0, surfaceTree.width(), surfaceTree.height(), buff, width, height));
+                            ClientPlayNetworking.send(new ServerboundFrameUpdatePayload(window.getHandle(), (int) element.x, (int) element.y, (int) element.w, (int) element.h, buff, width, height));
                         }
                         lastUpdate = System.currentTimeMillis();
                     }
@@ -231,7 +231,7 @@ public class WindowFramebuffer implements FramebufferRenderable {
 			}
 		}
 		
-		if(debugDamage && false) drawDebugDamage(opaqueUniforms);
+		if(debugDamage) drawDebugDamage(opaqueUniforms);
 		
 		try(RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "window framebuffer unpremultiply", target.getColorTextureView(), OptionalInt.empty())) {
 			pass.setPipeline(UNPREMULTIPLY_PIPELINE);
@@ -292,7 +292,7 @@ public class WindowFramebuffer implements FramebufferRenderable {
 		return new BufferDraw(buf.getTextureView(), x, y, w, h, crop_x1, crop_y1, crop_x2, crop_y2, buf.format != BufferTexture.FORMAT_XRGB8888);
 	}
 	
-	private static record CompiledBufferDraw(GpuTextureView textureView, GpuBuffer vertexBuffer, GpuBuffer indexBuffer, int indexCount, VertexFormat.IndexType indexType, boolean alpha) {
+	private static record CompiledBufferDraw(GpuTextureView textureView, GpuBuffer vertexBuffer, GpuBuffer indexBuffer, int indexCount, VertexFormat.IndexType indexType, boolean alpha, float x, float y, float w, float h) {
 	}
 	
 	private record BufferDraw(GpuTextureView textureView, float x, float y, float w, float h, float u1, float v1, float u2, float v2, boolean alpha) {
@@ -310,7 +310,7 @@ public class WindowFramebuffer implements FramebufferRenderable {
 					RenderSystem.AutoStorageIndexBuffer indices = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS);
 					GpuBuffer vertexBuffer = RenderSystem.getDevice().createBuffer(null, GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST, mesh.vertexBuffer());
 					GpuBuffer indexBuffer = indices.getBuffer(indexCount);
-					return new CompiledBufferDraw(textureView, vertexBuffer, indexBuffer, indexCount, indices.type(), alpha);
+					return new CompiledBufferDraw(textureView, vertexBuffer, indexBuffer, indexCount, indices.type(), alpha, x, y, w, h);
 				}
 			}
 		}

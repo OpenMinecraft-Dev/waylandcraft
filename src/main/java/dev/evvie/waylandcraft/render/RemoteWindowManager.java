@@ -46,7 +46,7 @@ public class RemoteWindowManager {
 
     public static void extractState(GuiGraphicsExtractor context, DeltaTracker tracker) {
         windows.forEach(w -> {
-            context.blit(w.ident, 0, 0, 150 * w.texture.getPixels().getWidth() / w.texture.getPixels().getHeight(), 150, 0.0f, 1.0f, 0.0f, 1.0f);
+            context.blit(w.ident, 0, 0, 125 * w.texture.getPixels().getWidth() / w.texture.getPixels().getHeight(), 125, 0.0f, 1.0f, 0.0f, 1.0f);
         });
     }
 
