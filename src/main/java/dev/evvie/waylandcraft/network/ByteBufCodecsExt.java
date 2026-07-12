@@ -49,9 +49,9 @@ public interface ByteBufCodecsExt {
             try {
                 var targetLength = input.readInt();
                 var length = input.readInt();
-                if (length > 0) {
+                /*if (length > 0) {
                     logger.info("{} (rate {}) bytes of compressed frame", length, (1 - length / (double) targetLength) * 100.0);
-                }
+                }*/
                 var buf = ByteBuffer.allocateDirect(length);
                 input.readBytes(buf);
                 return buf;
@@ -75,8 +75,6 @@ public interface ByteBufCodecsExt {
                 int compressedLen = temp.remaining();
                 output.writeInt(compressedLen);
                 output.writeBytes(temp);
-
-                logger.info("transfered {} bytes", compressedLen);
             } catch (Exception e) {
                 logger.warn("compress fail", e);
             }

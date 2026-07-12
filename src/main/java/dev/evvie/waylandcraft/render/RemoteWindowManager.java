@@ -27,8 +27,6 @@ public class RemoteWindowManager {
     private static Logger logger = LoggerFactory.getLogger(RemoteWindowManager.class);
     private static List<RemoteWindow> windows = new ArrayList<>();
     public static void handleUpdate(GameProfile profile, long handle, int x, int y, int w, int h, int windowWidth, int windowHeight, ByteBuffer data) {
-        logger.info("window update at ({}@{}), {},{}+{}x{}({}x{}), {}", handle, profile.name(), x, y, w, h, windowWidth, windowHeight, data);
-
         var win = windows.stream().filter(a -> a.profile.name().equals(profile.name())).filter(a -> a.handle == handle).findFirst();
 
         if (win.isEmpty()) {

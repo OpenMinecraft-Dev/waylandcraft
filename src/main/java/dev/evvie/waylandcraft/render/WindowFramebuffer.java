@@ -175,33 +175,12 @@ public class WindowFramebuffer implements FramebufferRenderable {
 		return "wayland-framebuffer-" + this.hashCode() + "-" + surfaceTree.hashCode();
 	}
 
-    public Map<SurfaceDamage, ByteBuffer> fetchUpdatedArea(WLCSurface surface, int gltext) {
-        var l = new HashMap<SurfaceDamage, ByteBuffer>();
+    public ByteBuffer fetchUpdatedArea(WLCSurface surface, int gltext) {
         ByteBuffer bf = WindowCopyBuffer.request(surface, 4 * surface.width() * surface.height());
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, gltext);
         GL11.glReadPixels(0, 0, surface.width(), surface.height(), GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, bf);
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
-        l.put(new SurfaceDamage(0, 0, surface.width(), surface.height()), bf);
-            /*if (surface.getBuffer() == null) {
-                return l;
-            }
-
-            if (!surface.getDamage().isEmpty()) {
-                WLCSurface finalSurface = surface;
-                l.putAll(surface.getDamage().stream().distinct().map(a -> {
-                    if (a.width() == Integer.MAX_VALUE || a.height() == Integer.MAX_VALUE) {
-                        return new SurfaceDamage(0, 0, finalSurface.width(), finalSurface.height());
-                    }
-                    return a;
-                }).collect(Collectors.toMap(a -> a, a -> {
-                    ByteBuffer bf = WindowCopyBuffer.request(finalSurface, 4 * a.width() * a.height());
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, gltext);
-                    GL11.glReadPixels(a.x(), a.y(), a.width(), a.height(), GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, bf);
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
-                    return bf;
-                })));
-            }*/
-        return l;
+        return bf;
     }
 
     private long lastUpdate = System.currentTimeMillis();
@@ -214,10 +193,12 @@ public class WindowFramebuffer implements FramebufferRenderable {
 		poseStack.scale(2.0f / width, 2.0f / height, 1.0f);
 		
 		ArrayList<CompiledBufferDraw> elements = new ArrayList<>();
-        ArrayList<WLCSurface> surfaces = new ArrayList<>();
 		for(WLCSurface surface = surfaceTree; surface != null; surface = surface.getNextChild()) {
 			BufferDraw draw = bakeSurface(surface, xoff + surface.xSubpos, yoff + surface.ySubpos);
-            if(draw != null) {elements.add(draw.compile()); surfaces.add(surface);}
+
+            if(draw != null) {
+                elements.add(draw.compile());
+            }
 		}
 		
 		ensureUniformStorage();
@@ -233,16 +214,15 @@ public class WindowFramebuffer implements FramebufferRenderable {
 					pass.setVertexBuffer(0, element.vertexBuffer);
 					pass.setIndexBuffer(element.indexBuffer, element.indexType);
 					pass.drawIndexed(0, 0, element.indexCount, 1);
-				}
 
-                if (System.currentTimeMillis() - lastUpdate >= 50) {
-                    fetchUpdatedArea(surfaceTree, ((GlTexture) tempTarget.getColorTextureView().texture()).glId()).forEach((sm, buff) -> {
+                    if (System.currentTimeMillis() - lastUpdate >= 70) {
+                        var buff = fetchUpdatedArea(surfaceTree, ((GlTexture) element.textureView.texture()).glId());
                         if (buff.remaining() > 0 && Minecraft.getInstance().getConnection() != null) {
-                            ClientPlayNetworking.send(new ServerboundFrameUpdatePayload(window.getHandle(), sm.x(), sm.y(), sm.width(), sm.height(), buff, width, height));
+                            ClientPlayNetworking.send(new ServerboundFrameUpdatePayload(window.getHandle(), 0, 0, surfaceTree.width(), surfaceTree.height(), buff, width, height));
                         }
-                    });
-                    lastUpdate = System.currentTimeMillis();
-                }
+                        lastUpdate = System.currentTimeMillis();
+                    }
+				}
 			}
 		}
 		finally {
@@ -251,7 +231,7 @@ public class WindowFramebuffer implements FramebufferRenderable {
 			}
 		}
 		
-		if(debugDamage) drawDebugDamage(opaqueUniforms);
+		if(debugDamage && false) drawDebugDamage(opaqueUniforms);
 		
 		try(RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "window framebuffer unpremultiply", target.getColorTextureView(), OptionalInt.empty())) {
 			pass.setPipeline(UNPREMULTIPLY_PIPELINE);
@@ -315,7 +295,7 @@ public class WindowFramebuffer implements FramebufferRenderable {
 	private static record CompiledBufferDraw(GpuTextureView textureView, GpuBuffer vertexBuffer, GpuBuffer indexBuffer, int indexCount, VertexFormat.IndexType indexType, boolean alpha) {
 	}
 	
-	private static record BufferDraw(GpuTextureView textureView, float x, float y, float w, float h, float u1, float v1, float u2, float v2, boolean alpha) {
+	private record BufferDraw(GpuTextureView textureView, float x, float y, float w, float h, float u1, float v1, float u2, float v2, boolean alpha) {
 		
 		public CompiledBufferDraw compile() {
 			try(ByteBufferBuilder byteBuilder = new ByteBufferBuilder(DefaultVertexFormat.POSITION_TEX.getVertexSize() * 4)) {

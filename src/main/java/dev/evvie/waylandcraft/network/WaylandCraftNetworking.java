@@ -64,7 +64,7 @@ public class WaylandCraftNetworking {
                 return;
             }
             // System.out.println(payload);
-            System.out.println("reveiced window data of " + payload.windowHandle());
+            // System.out.println("reveiced window data of " + payload.windowHandle());
 
             Arrays.stream(ctx.server().getPlayerNames())
                     // .filter(a -> !a.equals(ctx.player().getPlainTextName()))
