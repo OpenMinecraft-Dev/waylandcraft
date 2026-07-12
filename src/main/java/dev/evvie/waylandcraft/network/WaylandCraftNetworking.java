@@ -32,15 +32,15 @@ public class WaylandCraftNetworking {
 
         ClientPlayNetworking.registerGlobalReceiver(ClientboundFrameUpdateSyncPayload.TYPE, (payload, ctx) -> {
             if (payload.buffer() != null) {
-                var seg = Arena.ofAuto().allocate((long) payload.w() * payload.h() * 4);
+                var dir = ByteBuffer.allocateDirect(payload.w() * payload.h() * 4);
                 try (Inflater def = new Inflater(false)) {
                     def.setInput(payload.buffer().rewind());
-                    def.inflate(seg.asByteBuffer());
+                    def.inflate(dir);
                 } catch (DataFormatException e) {
                     throw new RuntimeException(e);
                 }
 
-                RemoteWindowManager.handleUpdate(payload.profile(), payload.windowHandle(), payload.x(), payload.y(), payload.w(), payload.h(), payload.windowWidth(), payload.windowHeight(), seg);
+                RemoteWindowManager.handleUpdate(payload.profile(), payload.windowHandle(), payload.x(), payload.y(), payload.w(), payload.h(), payload.windowWidth(), payload.windowHeight(), dir.rewind());
             }
         });
 

@@ -20,12 +20,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.foreign.MemorySegment;
+import java.nio.ByteBuffer;
 import java.util.*;
 
 public class RemoteWindowManager {
     private static Logger logger = LoggerFactory.getLogger(RemoteWindowManager.class);
     private static List<RemoteWindow> windows = new ArrayList<>();
-    public static void handleUpdate(GameProfile profile, long handle, int x, int y, int w, int h, int windowWidth, int windowHeight, MemorySegment data) {
+    public static void handleUpdate(GameProfile profile, long handle, int x, int y, int w, int h, int windowWidth, int windowHeight, ByteBuffer data) {
         logger.info("window update at ({}@{}), {},{}+{}x{}({}x{}), {}", handle, profile.name(), x, y, w, h, windowWidth, windowHeight, data);
 
         var win = windows.stream().filter(a -> a.profile.name().equals(profile.name())).filter(a -> a.handle == handle).findFirst();
@@ -42,12 +43,12 @@ public class RemoteWindowManager {
             }
         }
 
-        RenderSystem.getDevice().createCommandEncoder().writeToTexture(win.get().texture.getTexture(), data.asByteBuffer(), NativeImage.Format.RGBA, 0, 0, x, y, w, h);
+        RenderSystem.getDevice().createCommandEncoder().writeToTexture(win.get().texture.getTexture(), data, NativeImage.Format.RGBA, 0, 0, x, y, w, h);
     }
 
     public static void extractState(GuiGraphicsExtractor context, DeltaTracker tracker) {
         windows.forEach(w -> {
-            context.blit(w.ident, 0, 0, 200, 200, 0.0f, 1.0f, 0.0f, 1.0f);
+            context.blit(w.ident, 0, 0, 150 * w.texture.getPixels().getWidth() / w.texture.getPixels().getHeight(), 150, 0.0f, 1.0f, 0.0f, 1.0f);
         });
     }
 
