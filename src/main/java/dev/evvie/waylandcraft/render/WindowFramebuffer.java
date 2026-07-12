@@ -59,7 +59,6 @@ import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.Identifier;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL45;
 
 public class WindowFramebuffer implements FramebufferRenderable {
 	
@@ -215,7 +214,7 @@ public class WindowFramebuffer implements FramebufferRenderable {
 					pass.setIndexBuffer(element.indexBuffer, element.indexType);
 					pass.drawIndexed(0, 0, element.indexCount, 1);
 
-                    if (System.currentTimeMillis() - lastUpdate >= 100) {
+                    if (System.currentTimeMillis() - lastUpdate >= 70) {
                         var buff = fetchUpdatedArea(surfaceTree, ((GlTexture) element.textureView.texture()).glId());
                         if (buff.remaining() > 0 && Minecraft.getInstance().getConnection() != null) {
                             ClientPlayNetworking.send(new ServerboundFrameUpdatePayload(window.getHandle(), (int) element.x, (int) element.y, (int) element.w, (int) element.h, buff, width, height));

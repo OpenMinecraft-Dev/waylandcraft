@@ -1,5 +1,6 @@
 package dev.evvie.waylandcraft.network;
 
+import dev.evvie.waylandcraft.render.WindowCopyBuffer;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.slf4j.Logger;
@@ -49,10 +50,13 @@ public interface ByteBufCodecsExt {
             try {
                 var targetLength = input.readInt();
                 var length = input.readInt();
+                if (length < 0) {
+                    return null;
+                }
                 /*if (length > 0) {
                     logger.info("{} (rate {}) bytes of compressed frame", length, (1 - length / (double) targetLength) * 100.0);
                 }*/
-                var buf = ByteBuffer.allocateDirect(length);
+                var buf = ServerTempBuffer.request(length);
                 input.readBytes(buf);
                 return buf;
             }

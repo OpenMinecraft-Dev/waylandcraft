@@ -1,26 +1,17 @@
 package dev.evvie.waylandcraft.network;
 
-import java.io.IOException;
-import java.lang.foreign.Arena;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.concurrent.ForkJoinPool;
 import java.util.zip.DataFormatException;
-import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
-import com.mojang.blaze3d.platform.NativeImage;
 import dev.evvie.waylandcraft.WaylandCraftCommon;
 import dev.evvie.waylandcraft.render.RemoteWindowManager;
 import dev.evvie.waylandcraft.utils.IMyServerPlayer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class WaylandCraftNetworking {
 	public static void register() {
@@ -63,14 +54,10 @@ public class WaylandCraftNetworking {
             if (payload.buffer() == null) {
                 return;
             }
-            // System.out.println(payload);
-            // System.out.println("reveiced window data of " + payload.windowHandle());
 
-            Arrays.stream(ctx.server().getPlayerNames())
-                    // .filter(a -> !a.equals(ctx.player().getPlainTextName()))
-                    .map(a -> ctx.server().getPlayerList().getPlayerByName(a))
-                    .forEach(p -> {
-                ServerPlayNetworking.send(p, new ClientboundFrameUpdateSyncPayload(ctx.player().getGameProfile(), payload.windowHandle(), payload.x(), payload.y(), payload.w(), payload.h(), payload.buffer().rewind(), payload.windowWidth(), payload.windowHeight()));
+            ForkJoinPool.commonPool().execute(() -> {
+                var packet = ctx.responseSender().createPacket(new ClientboundFrameUpdateSyncPayload(ctx.player().getGameProfile(), payload.windowHandle(), payload.x(), payload.y(), payload.w(), payload.h(), payload.buffer().rewind(), payload.windowWidth(), payload.windowHeight()));
+                ctx.server().getPlayerList().broadcastAll(packet);
             });
         });
 	}
