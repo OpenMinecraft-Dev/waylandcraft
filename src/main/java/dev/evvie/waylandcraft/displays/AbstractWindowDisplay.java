@@ -17,10 +17,10 @@ public abstract class AbstractWindowDisplay {
 	public Vec3 pivot = new Vec3(0, 0, 0);
 	
 	// Window facing direction normal
-	protected Vec3 normal = new Vec3(0, 0, 1);
+	public Vec3 normal = new Vec3(0, 0, 1);
 	
 	// Window orientation downwards vector, has to be orthogonal to `normal` and normalized
-	protected Vec3 down = new Vec3(0, -1, 0);
+	public Vec3 down = new Vec3(0, -1, 0);
 	
 	protected int width;
 	protected int height;

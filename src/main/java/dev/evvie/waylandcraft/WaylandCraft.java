@@ -5,7 +5,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Stream;
 
+import dev.evvie.waylandcraft.network.serverbound.ServerboundDisplayUpdatePayload;
 import dev.evvie.waylandcraft.render.RemoteWindowManager;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.system.Platform;
@@ -172,7 +174,12 @@ public class WaylandCraft implements ClientModInitializer {
 	public void renderWorld(LevelRenderContext ctx) {
 		if(bridge == null) return;
 		
-		displays.forEach((d) -> d.render(ctx));
+		displays.forEach(d -> {
+            d.render(ctx);
+
+            ClientPlayNetworking.send(new ServerboundDisplayUpdatePayload(d.window.getHandle(), d.pivot.x, d.pivot.y, d.pivot.z, d.normal.x, d.normal.y, d.normal.z, d.down.x, d.down.y, d.down.z));
+        });
+        RemoteWindowManager.renderWorld(ctx);
 	}
 	
 	public void updateWorld(LevelExtractionContext ctx) {

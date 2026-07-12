@@ -44,7 +44,7 @@ public class WaylandHudRenderer {
 		HudElementRegistry.attachElementAfter(VanillaHudElements.BOSS_BAR, APP_LIST, this::extractAppListRenderState);
 		HudElementRegistry.attachElementAfter(VanillaHudElements.BOSS_BAR, PINNED_TOPLEVEL, this::extractPinnedToplevelRenderState);
 		HudElementRegistry.attachElementAfter(VanillaHudElements.BOSS_BAR, DND_ICON, this::extractDNDIconRenderState);
-        HudElementRegistry.attachElementAfter(VanillaHudElements.BOSS_BAR, DND_ICON2, RemoteWindowManager::extractState);
+        HudElementRegistry.attachElementAfter(VanillaHudElements.BOSS_BAR, DND_ICON2, RemoteWindowManager::renderOverlay);
 	}
 	
 	private void extractAppListRenderState(GuiGraphicsExtractor context, DeltaTracker deltaTracker) {

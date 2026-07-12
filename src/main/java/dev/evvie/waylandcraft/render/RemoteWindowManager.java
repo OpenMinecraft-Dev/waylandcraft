@@ -1,25 +1,19 @@
 package dev.evvie.waylandcraft.render;
 
 import com.mojang.authlib.GameProfile;
-import com.mojang.blaze3d.opengl.GlTexture;
-import com.mojang.blaze3d.pipeline.TextureTarget;
 import com.mojang.blaze3d.platform.NativeImage;
-import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.AddressMode;
-import com.mojang.blaze3d.textures.FilterMode;
-import com.mojang.blaze3d.textures.GpuSampler;
-import com.mojang.blaze3d.vertex.*;
+import dev.evvie.waylandcraft.displays.AbstractWindowDisplay;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.Identifier;
-import org.lwjgl.opengl.GL11;
+import net.minecraft.world.phys.Vec3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -50,15 +44,28 @@ public class RemoteWindowManager {
 
     public static void handleWindowClose(GameProfile profile, long handle) {
        var l = windows.stream().filter(a -> a.profile.name().equals(profile.name())).filter(a -> a.handle == handle).findFirst();
-       if (l.isPresent()) {
-           windows.remove(l.get());
-       }
+        l.ifPresent(remoteWindow -> windows.remove(remoteWindow));
     }
 
-    public static void extractState(GuiGraphicsExtractor context, DeltaTracker tracker) {
-        windows.forEach(w -> {
-            context.blit(w.ident, 0, 30, 200 * w.texture.getPixels().getWidth() / w.texture.getPixels().getHeight(), 200 + 30,0.0f, 1.0f, 0.0f, 1.0f);
+    public static void handleDisplay(GameProfile profile, long handle, Vec3 pivot, Vec3 normal, Vec3 down) {
+        windows.stream().filter(a -> a.profile.name().equals(profile.name())).filter(a -> a.handle == handle).findFirst().ifPresent(a -> {
+            a.display.pivot = pivot;
+            a.display.normal = normal;
+            a.display.down = down;
+        });
+    }
+
+    public static void renderOverlay(GuiGraphicsExtractor context, DeltaTracker tracker) {
+        /*windows.forEach(w -> {
+            // context.blit(w.ident, 0, 30, 200 * w.texture.getPixels().getWidth() / w.texture.getPixels().getHeight(), 200 + 30,0.0f, 1.0f, 0.0f, 1.0f);
             context.text(Minecraft.getInstance().font, w.title, 0, 0, 0xffffffff);
+        });*/
+    }
+
+    public static void renderWorld(LevelRenderContext ctx) {
+        windows.forEach(a -> {
+            // a.display.pivot = Minecraft.getInstance().player.position().add(-2, 0, -2);
+            a.display.render(ctx);
         });
     }
 
@@ -66,6 +73,7 @@ public class RemoteWindowManager {
         public GameProfile profile; public long handle; public DynamicTexture texture;
         public Identifier ident;
         public String title = "";
+        public AbstractWindowDisplay display;
         public RemoteWindow(GameProfile profile, long handle, DynamicTexture texture) {
             this.profile = profile;
             this.handle = handle;
@@ -73,6 +81,8 @@ public class RemoteWindowManager {
 
             ident = Identifier.fromNamespaceAndPath("waylandcraft", "tmp-" + this.hashCode());
             Minecraft.getInstance().getTextureManager().register(ident, texture);
+
+            display = new RemoteWindowDisplay(this);
         }
 
         public void resize(int w, int h) {
