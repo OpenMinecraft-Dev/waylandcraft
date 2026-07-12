@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import dev.evvie.waylandcraft.network.serverbound.ServerboundTitleUpdatePayload;
+import dev.evvie.waylandcraft.network.serverbound.ServerboundWindowClosePayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.Nullable;
@@ -192,6 +193,7 @@ public class WaylandCraftBridge {
 				toplevels_new.add(toplevel);
 			}
 			else {
+                ClientPlayNetworking.send(new ServerboundWindowClosePayload(toplevel.getHandle()));
 				freeToplevel(this.instance, toplevel.takeHandle());
 			}
 		}
@@ -205,6 +207,7 @@ public class WaylandCraftBridge {
 				popups_new.add(popup);
 			}
 			else {
+                ClientPlayNetworking.send(new ServerboundWindowClosePayload(popup.getHandle()));
 				freePopup(this.instance, popup.takeHandle());
 			}
 		}

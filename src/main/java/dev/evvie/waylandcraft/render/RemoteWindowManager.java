@@ -48,6 +48,13 @@ public class RemoteWindowManager {
         windows.stream().filter(a -> a.profile.name().equals(profile.name())).filter(a -> a.handle == handle).findFirst().ifPresent(a -> a.title = name);
     }
 
+    public static void handleWindowClose(GameProfile profile, long handle) {
+       var l = windows.stream().filter(a -> a.profile.name().equals(profile.name())).filter(a -> a.handle == handle).findFirst();
+       if (l.isPresent()) {
+           windows.remove(l.get());
+       }
+    }
+
     public static void extractState(GuiGraphicsExtractor context, DeltaTracker tracker) {
         windows.forEach(w -> {
             context.blit(w.ident, 0, 30, 200 * w.texture.getPixels().getWidth() / w.texture.getPixels().getHeight(), 200 + 30,0.0f, 1.0f, 0.0f, 1.0f);

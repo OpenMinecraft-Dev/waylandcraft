@@ -2,6 +2,7 @@ package dev.evvie.waylandcraft.network;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
@@ -9,10 +10,8 @@ import java.util.zip.Inflater;
 import dev.evvie.waylandcraft.WaylandCraftCommon;
 import dev.evvie.waylandcraft.network.cllentbound.ClientboundFrameUpdateSyncPayload;
 import dev.evvie.waylandcraft.network.cllentbound.ClientboundTitleUpdateSyncPayload;
-import dev.evvie.waylandcraft.network.serverbound.ServerboundAliveWindowsPayload;
-import dev.evvie.waylandcraft.network.serverbound.ServerboundFrameUpdatePayload;
-import dev.evvie.waylandcraft.network.serverbound.ServerboundGiveItemsPayload;
-import dev.evvie.waylandcraft.network.serverbound.ServerboundTitleUpdatePayload;
+import dev.evvie.waylandcraft.network.cllentbound.ClientboundWindowCloseSyncPayload;
+import dev.evvie.waylandcraft.network.serverbound.*;
 import dev.evvie.waylandcraft.render.RemoteWindowManager;
 import dev.evvie.waylandcraft.utils.IMyServerPlayer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -25,8 +24,10 @@ public class WaylandCraftNetworking {
 		PayloadTypeRegistry.serverboundPlay().register(ServerboundAliveWindowsPayload.TYPE, ServerboundAliveWindowsPayload.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(ServerboundFrameUpdatePayload.TYPE, ServerboundFrameUpdatePayload.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(ServerboundTitleUpdatePayload.TYPE, ServerboundTitleUpdatePayload.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(ServerboundWindowClosePayload.TYPE, ServerboundWindowClosePayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(ClientboundFrameUpdateSyncPayload.TYPE, ClientboundFrameUpdateSyncPayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(ClientboundTitleUpdateSyncPayload.TYPE, ClientboundTitleUpdateSyncPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(ClientboundWindowCloseSyncPayload.TYPE, ClientboundWindowCloseSyncPayload.CODEC);
 
         ClientPlayNetworking.registerGlobalReceiver(ClientboundFrameUpdateSyncPayload.TYPE, (payload, ctx) -> {
             if (payload.buffer() != null) {
@@ -42,6 +43,7 @@ public class WaylandCraftNetworking {
             }
         });
         ClientPlayNetworking.registerGlobalReceiver(ClientboundTitleUpdateSyncPayload.TYPE, (payload, _) -> RemoteWindowManager.handleTitleUpdate(payload.profile(), payload.handle(), payload.title()));
+        ClientPlayNetworking.registerGlobalReceiver(ClientboundWindowCloseSyncPayload.TYPE, (payload, _) -> RemoteWindowManager.handleWindowClose(payload.profile(), payload.handle()));
 
 		ServerPlayNetworking.registerGlobalReceiver(ServerboundAliveWindowsPayload.TYPE, (payload, ctx) -> {
 			IMyServerPlayer plr = (IMyServerPlayer) ctx.player();
@@ -63,5 +65,7 @@ public class WaylandCraftNetworking {
 
             ForkJoinPool.commonPool().execute(() -> ctx.server().getPlayerList().broadcastAll(ctx.responseSender().createPacket(new ClientboundFrameUpdateSyncPayload(ctx.player().getGameProfile(), payload.windowHandle(), payload.x(), payload.y(), payload.w(), payload.h(), payload.buffer().rewind(), payload.windowWidth(), payload.windowHeight()))));
         });
+
+        ServerPlayNetworking.registerGlobalReceiver(ServerboundWindowClosePayload.TYPE, (payload, ctx) -> ctx.server().getPlayerList().broadcastAll(ctx.responseSender().createPacket(new ClientboundWindowCloseSyncPayload(ctx.player().getGameProfile(), payload.handle()))));
 	}
 }
