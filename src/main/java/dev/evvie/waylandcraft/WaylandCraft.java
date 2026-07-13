@@ -380,7 +380,7 @@ public class WaylandCraft implements ClientModInitializer {
 		
 		Integer moveRequest = bridge.checkMoveRequest();
 		if(moveRequest != null) {
-			ImplicitGrab implicit = pointerGrabs.dropImplicitMatching(moveRequest.intValue());
+			ImplicitGrab implicit = pointerGrabs.dropImplicitMatching(moveRequest);
 			if(implicit != null) {
 				// The serial matched an active implicit grab
 				pointerGrabs.startExclusive(new MoveGrab(implicit));

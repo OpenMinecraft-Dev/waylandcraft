@@ -41,12 +41,12 @@ public abstract class SelectorWidget<T> extends AbstractWidget {
 		int x = getX();
 		int y = getY();
 		int height = getHeight();
-		
-		for(int i = 0; i < entries.length; i++) {
-			SelectorButton<T> button = new SelectorButton<T>(this, x, y, unrestrictedButtonWidth(), height);
-			button.element = entries[i];
-			buttons.add(button);
-		}
+
+        for (T entry : entries) {
+            SelectorButton<T> button = new SelectorButton<T>(this, x, y, unrestrictedButtonWidth(), height);
+            button.element = entry;
+            buttons.add(button);
+        }
 		
 		if(entries.length == 0) {
 			SelectorButton<T> button = new SelectorButton<T>(this, x, y, unrestrictedButtonWidth(), height);
@@ -68,15 +68,14 @@ public abstract class SelectorWidget<T> extends AbstractWidget {
 		if(buttons.size() * buttonWidth > width) {
 			buttonWidth = width / buttons.size();
 		}
-		
-		for(int i = 0; i < buttons.size(); i++) {
-			SelectorButton<T> button = buttons.get(i);
-			button.setX(x);
-			button.setY(y);
-			button.setWidth(buttonWidth);
-			button.setHeight(height);
-			x += buttonWidth;
-		}
+
+        for (SelectorButton<T> button : buttons) {
+            button.setX(x);
+            button.setY(y);
+            button.setWidth(buttonWidth);
+            button.setHeight(height);
+            x += buttonWidth;
+        }
 	}
 	
 	public abstract Component titleForElement(T element);
@@ -101,25 +100,22 @@ public abstract class SelectorWidget<T> extends AbstractWidget {
 	
 	@Override
 	protected void extractWidgetRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTicks) {
-		for(int i = 0; i < buttons.size(); i++) {
-			SelectorButton<T> b = buttons.get(i);
-			
-			b.visible = this.visible;
-			b.selected = b.element == selected;
-			
-			if(b.element != null) {
-				b.setMessage(titleForElement(b.element));
-				b.dimColor = elementDimColor(b.element);
-				b.icon = iconForElement(b.element);
-			}
-			else {
-				b.setMessage(Component.empty());
-				b.dimColor = false;
-				b.icon = null;
-			}
-			
-			b.extractRenderState(context, mouseX, mouseY, partialTicks);
-		}
+        for (SelectorButton<T> b : buttons) {
+            b.visible = this.visible;
+            b.selected = b.element == selected;
+
+            if (b.element != null) {
+                b.setMessage(titleForElement(b.element));
+                b.dimColor = elementDimColor(b.element);
+                b.icon = iconForElement(b.element);
+            } else {
+                b.setMessage(Component.empty());
+                b.dimColor = false;
+                b.icon = null;
+            }
+
+            b.extractRenderState(context, mouseX, mouseY, partialTicks);
+        }
 	}
 	
 	@Override

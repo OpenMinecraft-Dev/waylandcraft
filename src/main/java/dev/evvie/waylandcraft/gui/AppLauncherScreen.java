@@ -161,7 +161,7 @@ public class AppLauncherScreen extends Screen {
 	}
 	
 	private void createCategories() {
-		this.categories = new ArrayList<Category>();
+		this.categories = new ArrayList<>();
 		categories.add(new Category("AudioVideo", Component.literal("Multimedia"), Identifier.fromNamespaceAndPath(WaylandCraftCommon.MOD_ID, "categories/multimedia"), new ArrayList<DesktopEntry>()));
 		categories.add(new Category("Audio", Component.literal("Audio"), Identifier.fromNamespaceAndPath(WaylandCraftCommon.MOD_ID, "categories/music"), new ArrayList<DesktopEntry>()));
 		categories.add(new Category("Video", Component.literal("Video"), Identifier.fromNamespaceAndPath(WaylandCraftCommon.MOD_ID, "categories/video"), new ArrayList<DesktopEntry>()));

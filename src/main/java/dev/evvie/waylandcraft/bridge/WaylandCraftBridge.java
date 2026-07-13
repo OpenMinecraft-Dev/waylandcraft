@@ -12,6 +12,8 @@ import java.util.stream.Stream;
 
 import dev.evvie.waylandcraft.network.serverbound.ServerboundTitleUpdatePayload;
 import dev.evvie.waylandcraft.network.serverbound.ServerboundWindowClosePayload;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import org.apache.commons.lang3.ArrayUtils;
@@ -29,6 +31,7 @@ import dev.evvie.waylandcraft.utils.CursorShape;
 import net.minecraft.util.profiling.Profiler;
 import net.minecraft.util.profiling.ProfilerFiller;
 
+@Environment(EnvType.CLIENT)
 public class WaylandCraftBridge {
 	
 	private long instance;
@@ -83,7 +86,7 @@ public class WaylandCraftBridge {
 	}
 	
 	private static InputStream openNativeLibraryFromJar() {
-		InputStream stream = null;
+		InputStream stream;
 		
 		/* Attempt to load manually built native library */
 		stream = loadResource("/libwaylandcraft.so");
@@ -628,7 +631,7 @@ public class WaylandCraftBridge {
 	
 	public Integer checkMoveRequest() {
 		if(lastMoveRequestSerial == null) return null;
-		int serial = lastMoveRequestSerial.intValue();
+		int serial = lastMoveRequestSerial;
 		lastMoveRequestSerial = null;
 		return serial;
 	}
