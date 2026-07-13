@@ -405,7 +405,7 @@ public class WaylandCraftBridge {
 		}
 		
 		profiler.push("framebuffer");
-		updateFramebuffers();
+		updateFramebuffers(profiler);
 		profiler.pop();
 		
 		updateDmabufs();
@@ -423,7 +423,7 @@ public class WaylandCraftBridge {
 		profiler.pop();
 	}
 
-	private void updateFramebuffers() {
+	private void updateFramebuffers(ProfilerFiller profiler) {
 		List<WLCAbstractWindow> allWindows = Stream.of(toplevels, popups).flatMap((l) -> l.stream()).collect(Collectors.toList());
 		
 		// Render windows
@@ -432,7 +432,7 @@ public class WaylandCraftBridge {
 				window.framebuffer = new WindowFramebuffer(window.getSurfaceTree());
 				framebuffers.add(window.framebuffer);
 			}
-			window.framebuffer.render(window);
+			window.framebuffer.render(window, profiler);
 		}
 		
 		// Render dnd icon
@@ -441,7 +441,7 @@ public class WaylandCraftBridge {
 				dndIcon.framebuffer = new WindowFramebuffer(dndIcon.surface);
 				framebuffers.add(dndIcon.framebuffer);
 			}
-			dndIcon.framebuffer.render(null);
+			dndIcon.framebuffer.render(null, profiler);
 		}
 		
 		// Cleanup unused framebuffers

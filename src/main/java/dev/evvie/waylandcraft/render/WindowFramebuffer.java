@@ -5,9 +5,12 @@ import java.util.ArrayList;
 import java.util.OptionalInt;
 
 import com.mojang.blaze3d.opengl.GlTexture;
+import dev.evvie.waylandcraft.WaylandCraft;
 import dev.evvie.waylandcraft.bridge.WLCAbstractWindow;
 import dev.evvie.waylandcraft.network.serverbound.ServerboundFrameUpdatePayload;
+import dev.evvie.waylandcraft.settings.WaylandCraftSettings;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.util.profiling.ProfilerFiller;
 import org.joml.Matrix4fc;
 
 import com.mojang.blaze3d.buffers.GpuBuffer;
@@ -170,14 +173,15 @@ public class WindowFramebuffer implements FramebufferRenderable {
     }
 
     private long lastUpdate = System.currentTimeMillis();
-	public void render(WLCAbstractWindow window) {
+	public void render(WLCAbstractWindow window, ProfilerFiller profiler) {
 		updateTarget();
 		if(target == null || tempTarget == null) return;
 		
 		PoseStack poseStack = new PoseStack();
 		poseStack.translate(-1.0, -1.0, 0.0);
 		poseStack.scale(2.0f / width, 2.0f / height, 1.0f);
-		
+
+        profiler.push("bake");
 		ArrayList<CompiledBufferDraw> elements = new ArrayList<>();
 		for(WLCSurface surface = surfaceTree; surface != null; surface = surface.getNextChild()) {
 			BufferDraw draw = bakeSurface(surface, xoff + surface.xSubpos, yoff + surface.ySubpos);
@@ -186,6 +190,7 @@ public class WindowFramebuffer implements FramebufferRenderable {
                 elements.add(draw.compile());
             }
 		}
+        profiler.pop();
 		
 		ensureUniformStorage();
 		GpuBufferSlice alphaUniforms = uniformStorage.writeUniform(new WindowInfoUniform(poseStack.last().pose(), true));
@@ -195,19 +200,23 @@ public class WindowFramebuffer implements FramebufferRenderable {
 			try(RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "window framebuffer", tempTarget.getColorTextureView(), OptionalInt.of(0x00000000))) {
 				pass.setPipeline(WINDOW_PIPELINE);
 				for (CompiledBufferDraw element : elements) {
+                    profiler.push("temp_target");
 					pass.setUniform("window_info", element.alpha ? alphaUniforms : opaqueUniforms);
 					pass.bindTexture("sampler", element.textureView, RenderSystem.getSamplerCache().getClampToEdge(FilterMode.NEAREST));
 					pass.setVertexBuffer(0, element.vertexBuffer);
 					pass.setIndexBuffer(element.indexBuffer, element.indexType);
 					pass.drawIndexed(0, 0, element.indexCount, 1);
+                    profiler.pop();
 
-                    if (System.currentTimeMillis() - lastUpdate >= 250) {
+                    profiler.push("network_upload");
+                    if (System.currentTimeMillis() - lastUpdate >= WaylandCraft.instance.settings.getRemoteUpdateInterval()) {
                         var buff = fetchUpdatedArea(surfaceTree, ((GlTexture) element.textureView.texture()).glId());
                         if (buff.remaining() > 0 && Minecraft.getInstance().getConnection() != null) {
                             ClientPlayNetworking.send(new ServerboundFrameUpdatePayload(window.getHandle(), (int) element.x, (int) element.y, (int) element.w, (int) element.h, buff, width, height));
                         }
                         lastUpdate = System.currentTimeMillis();
                     }
+                    profiler.pop();
 				}
 			}
 		}
@@ -218,12 +227,14 @@ public class WindowFramebuffer implements FramebufferRenderable {
 		}
 		
 		if(debugDamage) drawDebugDamage(opaqueUniforms);
-		
+
+        profiler.push("blit");
 		try(RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "window framebuffer unpremultiply", target.getColorTextureView(), OptionalInt.empty())) {
 			pass.setPipeline(UNPREMULTIPLY_PIPELINE);
 			pass.bindTexture("sampler", tempTarget.getColorTextureView(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.NEAREST));
 			pass.draw(0, 3);
 		}
+        profiler.pop();
 	}
 	
 	private void drawDebugDamage(GpuBufferSlice opaqueUniforms) {

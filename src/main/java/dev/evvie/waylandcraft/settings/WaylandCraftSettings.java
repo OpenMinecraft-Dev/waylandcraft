@@ -21,16 +21,19 @@ public class WaylandCraftSettings {
 	int pixelsPerBlock = 500;
 	boolean focusOnHover = false;
 	String terminalChoice = "";
+    int remoteUpdateInterval = 100;
 	
 	/* This is where the field names go to avoid typos */
 	public static final String PIXELS_PER_BLOCK = "pixelsPerBlock";
 	public static final String FOCUS_ON_HOVER = "focusOnHover";
 	public static final String TERMINAL_CHOICE = "terminalChoice";
+    public static final String REMOTE_UPDATE_INTERVAL = "remoteUpdateInterval";
 	
 	public static final String[] SETTINGS = new String[] {
 			PIXELS_PER_BLOCK,
 			FOCUS_ON_HOVER,
-			TERMINAL_CHOICE
+			TERMINAL_CHOICE,
+            REMOTE_UPDATE_INTERVAL
 	};
 	
 	/* This is where the getters go */
@@ -46,6 +49,10 @@ public class WaylandCraftSettings {
 	public String getTerminalChoice() {
 		return terminalChoice;
 	}
+
+    public int getRemoteUpdateInterval() {
+        return remoteUpdateInterval;
+    }
 	
 	/* Methods to modifiy settings by name */
 	
