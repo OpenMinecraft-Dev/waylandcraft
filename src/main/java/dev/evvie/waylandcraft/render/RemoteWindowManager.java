@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.evvie.waylandcraft.displays.AbstractWindowDisplay;
+import dev.evvie.waylandcraft.displays.RemoteWindowDisplay;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;

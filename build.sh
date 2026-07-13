@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-cd native
+cd native || exit
 cargo build "$@"
 cd ..
 ./gradlew build

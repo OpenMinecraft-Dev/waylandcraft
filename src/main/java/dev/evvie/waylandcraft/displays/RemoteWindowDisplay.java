@@ -1,10 +1,9 @@
-package dev.evvie.waylandcraft.render;
+package dev.evvie.waylandcraft.displays;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.evvie.waylandcraft.WaylandCraft;
 import dev.evvie.waylandcraft.compat.IrisCompat;
-import dev.evvie.waylandcraft.displays.AbstractWindowDisplay;
-import dev.evvie.waylandcraft.displays.FramebufferRenderable;
+import dev.evvie.waylandcraft.render.RemoteWindowManager;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
@@ -41,8 +40,8 @@ public class RemoteWindowDisplay extends AbstractWindowDisplay {
     @Override
     public void renderFramebuffer(PoseStack poseStack, SubmitNodeCollector collector, Vec3 origin, Vec3 spanX, Vec3 spanY) {
         if(IrisCompat.isShaderActive()) {
-            collector.submitCustomGeometry(poseStack, RenderTypes.entityCutoutCull(window.ident), new RenderUtils.FramebufferRenderInstanceEntity(origin, spanX, spanY, ARGB.white(1.0f), OverlayTexture.NO_OVERLAY, LightCoordsUtil.FULL_BRIGHT, false));
-            collector.submitCustomGeometry(poseStack, RenderTypes.entityCutoutCull(window.ident), new RenderUtils.FramebufferRenderInstanceEntity(origin, spanX, spanY, ARGB.black(1.0f), OverlayTexture.NO_OVERLAY, LightCoordsUtil.FULL_BRIGHT, true));
+            collector.submitCustomGeometry(poseStack, RenderTypes.entityCutoutCull(window.ident), new FramebufferRenderInstanceEntity(origin, spanX, spanY, ARGB.white(1.0f), OverlayTexture.NO_OVERLAY, LightCoordsUtil.FULL_BRIGHT, false));
+            collector.submitCustomGeometry(poseStack, RenderTypes.entityCutoutCull(window.ident), new FramebufferRenderInstanceEntity(origin, spanX, spanY, ARGB.black(1.0f), OverlayTexture.NO_OVERLAY, LightCoordsUtil.FULL_BRIGHT, true));
             return;
         }
 
@@ -50,11 +49,11 @@ public class RemoteWindowDisplay extends AbstractWindowDisplay {
 
         // Front quad
         renderType = WINDOW_CUTOUT_ANTIALIAS;
-        collector.submitCustomGeometry(poseStack, renderType.apply(window.ident), new RenderUtils.FramebufferRenderInstance(origin, spanX, spanY, false));
+        collector.submitCustomGeometry(poseStack, renderType.apply(window.ident), new FramebufferRenderInstance(origin, spanX, spanY, false));
 
         // Back quad
         renderType = WINDOW_BACKGROUND_CUTOUT;
-        collector.submitCustomGeometry(poseStack, renderType.apply(window.ident), new RenderUtils.FramebufferRenderInstance(origin, spanX, spanY, true));
+        collector.submitCustomGeometry(poseStack, renderType.apply(window.ident), new FramebufferRenderInstance(origin, spanX, spanY, true));
     }
 
     @Override
