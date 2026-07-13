@@ -22,7 +22,7 @@ public class WaylandCraftSettingsManager {
 	private File keymapFile;
 	private File settingsFile;
 	
-	private ArrayList<SettingResponder> responders = new ArrayList<SettingResponder>();
+	private final ArrayList<SettingResponder> responders = new ArrayList<SettingResponder>();
 	
 	public WaylandCraftSettingsManager(WaylandCraft wlc) {
 		this.wlc = wlc;
@@ -158,14 +158,14 @@ public class WaylandCraftSettingsManager {
 	// Set an int setting and write it to file
 	public void setIntSetting(String name, int value) {
 		wlc.settings.setIntSetting(name, value);
-		updateResponders(name, (Integer) value);
+		updateResponders(name, value);
 		writeSettings();
 	}
 	
 	// Set a boolean setting and write it to file
 	public void setBooleanSetting(String name, boolean value) {
 		wlc.settings.setBooleanSetting(name, value);
-		updateResponders(name, (Boolean) value);
+		updateResponders(name, value);
 		writeSettings();
 	}
 	
@@ -190,23 +190,15 @@ public class WaylandCraftSettingsManager {
 	public String getTextSetting(String name) {
 		return wlc.settings.getTextSetting(name);
 	}
-	
-	private static class SettingResponder {
-		
-		public final String settingName;
-		public final ISettingResponder impl;
-		
-		public SettingResponder(String settingName, ISettingResponder impl) {
-			this.settingName = settingName;
-			this.impl = impl;
-		}
-		
-		protected void maybeFire(String setting, Object value) {
-			if(setting.equals(this.settingName)) {
-				impl.onChangeSetting(value);
-			}
-		}
-		
-	}
+
+    private record SettingResponder(String settingName, ISettingResponder impl) {
+
+        protected void maybeFire(String setting, Object value) {
+            if (setting.equals(this.settingName)) {
+                impl.onChangeSetting(value);
+            }
+        }
+
+    }
 	
 }

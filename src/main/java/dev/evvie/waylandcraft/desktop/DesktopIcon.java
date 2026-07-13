@@ -25,7 +25,7 @@ public class DesktopIcon {
 	
 	public final String path;
 	
-	private WaylandCraft wlc;
+	private final WaylandCraft wlc;
 	
 	private IconImage image = null;
 	private IconTexture texture = null;

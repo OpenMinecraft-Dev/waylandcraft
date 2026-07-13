@@ -159,7 +159,7 @@ public class RenderUtils {
 		collector.submitCustomGeometry(poseStack, renderType.apply(framebuffer.getTextureLocation()), new FramebufferRenderInstance(origin, spanX, spanY, true));
 	}
 	
-	public static final record FramebufferRenderInstance(Vec3 origin, Vec3 spanX, Vec3 spanY, boolean reverse) implements CustomGeometryRenderer {
+	public record FramebufferRenderInstance(Vec3 origin, Vec3 spanX, Vec3 spanY, boolean reverse) implements CustomGeometryRenderer {
 		
 		@Override
 		public void render(Pose pose, VertexConsumer buffer) {
@@ -184,7 +184,7 @@ public class RenderUtils {
 		
 	}
 	
-	public static final record FramebufferRenderInstanceEntity(Vec3 origin, Vec3 spanX, Vec3 spanY, int color, int overlayCoords, int light, boolean reverse) implements CustomGeometryRenderer {
+	public record FramebufferRenderInstanceEntity(Vec3 origin, Vec3 spanX, Vec3 spanY, int color, int overlayCoords, int light, boolean reverse) implements CustomGeometryRenderer {
 		
 		@Override
 		public void render(Pose pose, VertexConsumer buffer) {
@@ -226,7 +226,7 @@ public class RenderUtils {
 		collector.submitCustomGeometry(poseStack, RenderTypes.lines(), new LineStripDraw(points, color, width));
 	}
 	
-	private static final record LineStripDraw(Vec3[] points, int color, float width) implements CustomGeometryRenderer {
+	private record LineStripDraw(Vec3[] points, int color, float width) implements CustomGeometryRenderer {
 		
 		@Override
 		public void render(Pose pose, VertexConsumer buffer) {

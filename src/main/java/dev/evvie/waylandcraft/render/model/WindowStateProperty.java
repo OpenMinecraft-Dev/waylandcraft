@@ -44,14 +44,14 @@ public record WindowStateProperty() implements SelectItemModelProperty<WindowSta
 		return TYPE;
 	}
 	
-	public static enum WindowState implements StringRepresentable {
+	public enum WindowState implements StringRepresentable {
 		NONE("none"), ICON("icon"), BROKEN("broken");
 		
 		public static final Codec<WindowState> CODEC = StringRepresentable.fromEnum(WindowState::values);
 		
 		private final String name;
 		
-		private WindowState(String name) {
+		WindowState(String name) {
 			this.name = name;
 		}
 		

@@ -52,9 +52,6 @@ public interface ByteBufCodecsExt {
                 if (length < 0) {
                     return null;
                 }
-                /*if (length > 0) {
-                    logger.info("{} (rate {}) bytes of compressed frame", length, (1 - length / (double) targetLength) * 100.0);
-                }*/
                 var buf = ServerTempBuffer.request(length);
                 input.readBytes(buf);
                 return buf;

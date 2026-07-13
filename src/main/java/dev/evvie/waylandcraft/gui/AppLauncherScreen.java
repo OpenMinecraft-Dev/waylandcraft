@@ -18,7 +18,7 @@ import net.minecraft.resources.Identifier;
 
 public class AppLauncherScreen extends Screen {
 	
-	private WaylandCraft wlc;
+	private final WaylandCraft wlc;
 	private AppListWidget list;
 	private CategorySelectorWidget categorySelector;
 	private EditBox searchBox;
@@ -178,7 +178,7 @@ public class AppLauncherScreen extends Screen {
 		categories.add(new Category("Utility", Component.literal("Utility"), Identifier.fromNamespaceAndPath(WaylandCraftCommon.MOD_ID, "categories/utility"), new ArrayList<DesktopEntry>()));
 	}
 	
-	private static record RankedDesktopEntry(DesktopEntry entry, int score) {}
-	private static record Category(String name, Component title, Identifier icon, ArrayList<DesktopEntry> entries) {}
+	private record RankedDesktopEntry(DesktopEntry entry, int score) {}
+	private record Category(String name, Component title, Identifier icon, ArrayList<DesktopEntry> entries) {}
 	
 }

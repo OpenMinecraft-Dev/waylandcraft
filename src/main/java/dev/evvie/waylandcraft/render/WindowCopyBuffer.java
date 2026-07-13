@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class WindowCopyBuffer {
-    private static Map<WLCSurface, ByteBuffer> buffers = new HashMap<>();
+    private static final Map<WLCSurface, ByteBuffer> buffers = new HashMap<>();
 
     public static ByteBuffer request(WLCSurface surface, int size) {
         if (buffers.get(surface) == null) {

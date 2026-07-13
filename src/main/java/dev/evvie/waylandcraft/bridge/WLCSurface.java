@@ -50,7 +50,7 @@ public class WLCSurface {
 	public int xSubpos = 0;
 	public int ySubpos = 0;
 	
-	private ArrayList<SurfaceDamage> damage = new ArrayList<>();
+	private final ArrayList<SurfaceDamage> damage = new ArrayList<>();
 	
 	protected WLCSurface(long handle) {
 		this.handle = handle;
@@ -208,11 +208,11 @@ public class WLCSurface {
 	}
 	
 	// Surface-local dimensions of the source rectangle in a buffer
-	public static final record ViewportSource(double x, double y, double width, double height) {
+	public record ViewportSource(double x, double y, double width, double height) {
 	}
 	
 	// Surface-local region describing contents damage
-	public static final record SurfaceDamage(int x, int y, int width, int height) {
+	public record SurfaceDamage(int x, int y, int width, int height) {
 	}
 	
 }

@@ -349,7 +349,7 @@ public class SettingsWidget extends AbstractWidget {
 	
 	public static class TextControlElement extends ControlElement {
 		
-		private EditBox editBox;
+		private final EditBox editBox;
 		
 		public TextControlElement(WaylandCraft wlc, String settingName) {
 			super(wlc, settingName);

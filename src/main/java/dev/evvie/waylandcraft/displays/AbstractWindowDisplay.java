@@ -30,7 +30,7 @@ public abstract class AbstractWindowDisplay {
 	
 	private float pixelScale;
 
-    private Logger logger = LoggerFactory.getLogger(AbstractWindowDisplay.class);
+    private final Logger logger = LoggerFactory.getLogger(AbstractWindowDisplay.class);
 	
 	public AbstractWindowDisplay() {
 	}

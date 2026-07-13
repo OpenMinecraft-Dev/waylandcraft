@@ -19,7 +19,7 @@ import net.minecraft.resources.Identifier;
 
 public abstract class SelectorWidget<T> extends AbstractWidget {
 	
-	private ArrayList<SelectorButton<T>> buttons = new ArrayList<SelectorButton<T>>();
+	private final ArrayList<SelectorButton<T>> buttons = new ArrayList<SelectorButton<T>>();
 	
 	// Currently selected element, should always be either null or an element assigned to a button
 	private T selected = null;

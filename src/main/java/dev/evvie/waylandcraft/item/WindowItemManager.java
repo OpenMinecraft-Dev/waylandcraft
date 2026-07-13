@@ -16,7 +16,7 @@ import net.minecraft.world.item.ItemStack;
 
 public class WindowItemManager implements WindowItemInteractionProvider, ClientTickEvents.StartTick {
 	
-	private static Component UNKNOWN_WINDOW_TEXT = Component.literal("Unknown Window");
+	private static final Component UNKNOWN_WINDOW_TEXT = Component.literal("Unknown Window");
 	
 	// Toplevel handles last sent to the server for synchronization
 	private long[] syncedToplevels = new long[0];

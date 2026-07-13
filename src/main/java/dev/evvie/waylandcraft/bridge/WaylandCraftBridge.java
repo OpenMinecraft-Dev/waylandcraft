@@ -32,17 +32,17 @@ import net.minecraft.util.profiling.ProfilerFiller;
 public class WaylandCraftBridge {
 	
 	private long instance;
-	private ArrayList<WLCToplevel> toplevels = new ArrayList<WLCToplevel>();
-	private ArrayList<WLCPopup> popups = new ArrayList<WLCPopup>();
-	private ArrayList<WLCSurface> surfaces = new ArrayList<WLCSurface>();
-	private ArrayList<DmabufTexture> dmabufs = new ArrayList<DmabufTexture>();
-	private ArrayList<WindowFramebuffer> framebuffers = new ArrayList<WindowFramebuffer>();
+	private ArrayList<WLCToplevel> toplevels = new ArrayList<>();
+	private ArrayList<WLCPopup> popups = new ArrayList<>();
+	private ArrayList<WLCSurface> surfaces = new ArrayList<>();
+	private ArrayList<DmabufTexture> dmabufs = new ArrayList<>();
+	private final ArrayList<WindowFramebuffer> framebuffers = new ArrayList<>();
 	
 	public IconSurface dndIcon = null;
 	
-	private LinkedList<WLCToplevel> focusOrder = new LinkedList<WLCToplevel>();
+	private final LinkedList<WLCToplevel> focusOrder = new LinkedList<>();
 	
-	private ArrayList<WLCToplevel> newToplevels = new ArrayList<WLCToplevel>();
+	private final ArrayList<WLCToplevel> newToplevels = new ArrayList<>();
 	
 	private @Nullable Integer lastMoveRequestSerial = null;
 	private @Nullable ResizeRequest lastResizeRequest = null;
@@ -90,17 +90,16 @@ public class WaylandCraftBridge {
 		if(stream != null) return stream;
 		
 		/* Attempt to load from release library path */
-		String arch;
-		switch(Platform.getArchitecture()) {
-		case X64: arch = "x86_64"; break;
-		case ARM64: arch = "arm64"; break;
-		default: arch = null; break;
-		}
-		
-		if(arch != null) {
+		String arch = switch (Platform.getArchitecture()) {
+            case X64 -> "x86_64";
+            case ARM64 -> "arm64";
+            default -> null;
+        };
+
+        if(arch != null) {
 			String platform = "linux-gnu-" + arch;
 			stream = loadResource("/libwaylandcraft-" + platform + ".so");
-			if(stream != null) return stream;
+            return stream;
 		}
 		
 		return null;
@@ -710,9 +709,9 @@ public class WaylandCraftBridge {
 		dndMotion(instance, handle, x, y);
 	}
 	
-	public static record Size(int width, int height) {}
+	public record Size(int width, int height) {}
 	
-	public static record ResizeRequest(int serial, int edges) {}
+	public record ResizeRequest(int serial, int edges) {}
 	
 	private static native long init(long glfwGetProcAddress, long eglDisplay);
 	private static native void shutdown(long instance);

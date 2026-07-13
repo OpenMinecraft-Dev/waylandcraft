@@ -18,8 +18,8 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 public class RemoteWindowManager {
-    private static Logger logger = LoggerFactory.getLogger(RemoteWindowManager.class);
-    private static List<RemoteWindow> windows = new ArrayList<>();
+    private static final Logger logger = LoggerFactory.getLogger(RemoteWindowManager.class);
+    private static final List<RemoteWindow> windows = new ArrayList<>();
     public static void handleUpdate(GameProfile profile, long handle, int x, int y, int w, int h, int windowWidth, int windowHeight, ByteBuffer data) {
         var win = windows.stream().filter(a -> a.profile.name().equals(profile.name())).filter(a -> a.handle == handle).findFirst();
 
@@ -56,15 +56,10 @@ public class RemoteWindowManager {
     }
 
     public static void renderOverlay(GuiGraphicsExtractor context, DeltaTracker tracker) {
-        /*windows.forEach(w -> {
-            // context.blit(w.ident, 0, 30, 200 * w.texture.getPixels().getWidth() / w.texture.getPixels().getHeight(), 200 + 30,0.0f, 1.0f, 0.0f, 1.0f);
-            context.text(Minecraft.getInstance().font, w.title, 0, 0, 0xffffffff);
-        });*/
     }
 
     public static void renderWorld(LevelRenderContext ctx) {
         windows.forEach(a -> {
-            // a.display.pivot = Minecraft.getInstance().player.position().add(-2, 0, -2);
             a.display.render(ctx);
         });
     }

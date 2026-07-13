@@ -20,7 +20,7 @@ import java.util.function.Function;
 import static dev.evvie.waylandcraft.render.RenderUtils.*;
 
 public class RemoteWindowDisplay extends AbstractWindowDisplay {
-    private RemoteWindowManager.RemoteWindow window;
+    private final RemoteWindowManager.RemoteWindow window;
     public RemoteWindowDisplay(RemoteWindowManager.RemoteWindow window) {
         this.window = window;
     }

@@ -488,7 +488,7 @@ public class WaylandCraft implements ClientModInitializer {
 			DisplayHitResult hit = display.intersect(pos, look);
 			if(hit == null || hit.isMiss()) continue;
 			
-			double dist = hit.position.distanceToSqr(pos);
+			double dist = hit.position().distanceToSqr(pos);
 			if(finalHitResult == null || dist < finalDistance) {
 				finalHitResult = hit;
 				finalDistance = dist;
@@ -502,7 +502,7 @@ public class WaylandCraft implements ClientModInitializer {
 		if(gameHitDistance < finalDistance) finalHitResult = null;
 		
 		// Check for player reach
-		if(finalHitResult != null && !finalHitResult.position.closerThan(pos, Minecraft.getInstance().player.blockInteractionRange())) finalHitResult = null;
+		if(finalHitResult != null && !finalHitResult.position().closerThan(pos, Minecraft.getInstance().player.blockInteractionRange())) finalHitResult = null;
 		
 		if(!pointerGrabs.isExclusiveGrabActive()) hoveredDisplay = finalHitResult;
 		
@@ -513,7 +513,7 @@ public class WaylandCraft implements ClientModInitializer {
 			
 			pointerGrabs.moveWorld(pos, look, up, camera.yRot(), camera.xRot());
 			if(finalHitResult != null) {
-				pointerGrabs.hover(finalHitResult.target.window, finalHitResult.surface, finalHitResult.surfaceLocalRelative.x, finalHitResult.surfaceLocalRelative.y);
+				pointerGrabs.hover(finalHitResult.target().window, finalHitResult.surface(), finalHitResult.surfaceLocalRelative().x, finalHitResult.surfaceLocalRelative().y);
 			}
 			else {
 				pointerGrabs.hoverNone();
@@ -530,9 +530,9 @@ public class WaylandCraft implements ClientModInitializer {
 			this.overridePickBlock = true;
 		}
 		
-		if(hoveredDisplay != null && hoveredDisplay.dist >= 0) {
-			WLCSurface surface = hoveredDisplay.surface;
-			Vec3 rel = hoveredDisplay.surfaceLocalRelative;
+		if(hoveredDisplay != null && hoveredDisplay.dist() >= 0) {
+			WLCSurface surface = hoveredDisplay.surface();
+			Vec3 rel = hoveredDisplay.surfaceLocalRelative();
 			
 			this.cursorShape = bridge.getCursorShape();
 			bridge.sendMotionRefocus(surface, rel.x, rel.y);
@@ -542,7 +542,7 @@ public class WaylandCraft implements ClientModInitializer {
 			}
 			
 			// Focus on hover
-			if(settings.getFocusOnHover() && hoveredDisplay.target.window instanceof WLCToplevel toplevel) {
+			if(settings.getFocusOnHover() && hoveredDisplay.target().window instanceof WLCToplevel toplevel) {
 				bridge.focusSurface(toplevel);
 			}
 		}
@@ -562,14 +562,12 @@ public class WaylandCraft implements ClientModInitializer {
 				bridge.sendButton(0x110 + button, 1);
 				pointerCapture.pressedButtons.add(button);
 			}
-			else if(action == 0 && pointerCapture.pressedButtons.contains(button)) {
+			else // Forward release to minecraft if it wasn't part of this pointer capture
+                if(action == 0 && pointerCapture.pressedButtons.contains(button)) {
 				bridge.sendButton(0x110 + button, 0);
 				pointerCapture.pressedButtons.remove(button);
 			}
-			else if(action == 0) {
-				// Forward release to minecraft if it wasn't part of this pointer capture
-				return false;
-			}
+			else return action != 0;
 			return true;
 		}
 		
@@ -583,9 +581,9 @@ public class WaylandCraft implements ClientModInitializer {
 		// Handle implicit pointer grab button presses
 		if(action == 1) {
 			// Start new implicit grab when conditions are met
-			if(!pointerGrabs.isImplicitActive() && hoveredDisplay != null && hoveredDisplay.dist >= 0) {
+			if(!pointerGrabs.isImplicitActive() && hoveredDisplay != null && hoveredDisplay.dist() >= 0) {
 				pointerGrabs.startImplicit(hoveredDisplay);
-				WLCAbstractWindow window = hoveredDisplay.target.window;
+				WLCAbstractWindow window = hoveredDisplay.target().window;
 				if(window instanceof WLCToplevel) bridge.focusSurface((WLCToplevel) window);
 			}
 			
@@ -596,7 +594,7 @@ public class WaylandCraft implements ClientModInitializer {
 			}
 			
 			// If clicking on a window at all, the button press should be captured, even if it wasn't passed on to the application
-			if(hoveredDisplay != null) return true;
+            return hoveredDisplay != null;
 		}
 		
 		return false;
@@ -605,9 +603,8 @@ public class WaylandCraft implements ClientModInitializer {
 	private boolean canStartInteracting() {
 		LocalPlayer player = Minecraft.getInstance().player;
 		if(player == null) return false;
-		if(player.isUsingItem()) return false;
-		return true;
-	}
+        return !player.isUsingItem();
+    }
 	
 	/* Handle mouse being turned in game
 	 * Returns true when the mouse move has been consumed
@@ -643,12 +640,12 @@ public class WaylandCraft implements ClientModInitializer {
 		}
 		
 		if(hoveredDisplay != null) {
-			if(hoveredDisplay.dist < 0) return true;
+			if(hoveredDisplay.dist() < 0) return true;
 			
 			bridge.sendScroll(0, -scrollY);
 			bridge.sendScroll(1, -scrollX);
 			
-			WLCAbstractWindow window = hoveredDisplay.target.window;
+			WLCAbstractWindow window = hoveredDisplay.target().window;
 			if(window instanceof WLCToplevel) bridge.focusSurface((WLCToplevel) window);
 			
 			return true;
@@ -717,11 +714,11 @@ public class WaylandCraft implements ClientModInitializer {
 		window.moveOrigin(parent.localToWorld(popup.offsetX, popup.offsetY, 0.01));
 	}
 	
-	public static enum KeyboardCaptureMode {
+	public enum KeyboardCaptureMode {
 		
-		NONE, CAPTURE, HARD_CAPTURE;
-		
-	}
+		NONE, CAPTURE, HARD_CAPTURE
+
+    }
 	
 	public static class PointerCapture {
 		

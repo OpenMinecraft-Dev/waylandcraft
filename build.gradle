@@ -62,8 +62,8 @@ java {
 	targetCompatibility = JavaVersion.VERSION_25
 }
 
-import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style;
+import org.gradle.internal.logging.text.StyledTextOutputFactory
+import static org.gradle.internal.logging.text.StyledTextOutput.Style
 
 jar {
 	inputs.property "archivesName", project.base.archivesName
@@ -88,11 +88,11 @@ jar {
 	def targets = [
 		"linux-gnu-x86_64",
 		"linux-gnu-arm64"
-	];
+	]
 
 	for(def target in targets) {
 		def f = file("native-libs/libwaylandcraft-${target}.so")
-		if(!f.exists()) continue;
+		if(!f.exists()) continue
 
 		with(copySpec {
 			from(f)
@@ -105,7 +105,7 @@ jar {
 			.get(StyledTextOutputFactory)
 			.create("waylandcraft")
 			.withStyle(Style.Failure)
-			.println("WARNING: Native library not built! The built mod will not contain native code");
+			.println("WARNING: Native library not built! The built mod will not contain native code")
 	}
 }
 

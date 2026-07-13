@@ -3,7 +3,7 @@ package dev.evvie.waylandcraft.network;
 import java.nio.ByteBuffer;
 
 public class ServerTempBuffer {
-    private static ThreadLocal<ByteBuffer> buffer = new ThreadLocal<>();
+    private static final ThreadLocal<ByteBuffer> buffer = new ThreadLocal<>();
 
     public static ByteBuffer request(int size) {
         if (buffer.get() == null) {

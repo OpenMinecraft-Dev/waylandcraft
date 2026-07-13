@@ -13,7 +13,7 @@ import net.minecraft.world.phys.Vec3;
 
 public class PointerGrabMap {
 	
-	private WaylandCraft wlc;
+	private final WaylandCraft wlc;
 	private PointerGrab exclusiveGrab = null;
 	private ImplicitGrabs implicitGrabs = null;
 	
@@ -85,7 +85,7 @@ public class PointerGrabMap {
 		DisplayHitResult hitResult = implicitGrabs.window.intersect(pos, view);
 		if(hitResult == null) return;
 		
-		Vec3 relativeCoords = hitResult.surfaceLocalOrigin.subtract(implicitGrabs.surface.xSubpos, implicitGrabs.surface.ySubpos, 0);
+		Vec3 relativeCoords = hitResult.surfaceLocalOrigin().subtract(implicitGrabs.surface.xSubpos, implicitGrabs.surface.ySubpos, 0);
 		wlc.bridge.sendMotion(relativeCoords.x, relativeCoords.y);
 	}
 	
@@ -188,10 +188,10 @@ public class PointerGrabMap {
 		public ArrayList<ButtonPress> buttons = new ArrayList<ButtonPress>();
 		
 		public ImplicitGrabs(DisplayHitResult hitResult) {
-			this.window = hitResult.target;
-			this.surface = hitResult.surface;
-			this.startWorldPos = hitResult.position;
-			this.startSurfaceLocal = hitResult.surfaceLocalOrigin;
+			this.window = hitResult.target();
+			this.surface = hitResult.surface();
+			this.startWorldPos = hitResult.position();
+			this.startSurfaceLocal = hitResult.surfaceLocalOrigin();
 		}
 		
 		public boolean contains(int button) {
@@ -214,10 +214,10 @@ public class PointerGrabMap {
 		
 	}
 	
-	private static record ButtonPress(int button, int serial) {}
+	private record ButtonPress(int button, int serial) {}
 	
 	// Not a real pointer grab, just a way to represent active button presses on a WindowDisplay
-	public static record ImplicitGrab(WindowDisplay window, WLCSurface surface, int button, int serial, Vec3 startWorldPos, Vec3 startSurfaceLocal) {
+	public record ImplicitGrab(WindowDisplay window, WLCSurface surface, int button, int serial, Vec3 startWorldPos, Vec3 startSurfaceLocal) {
 		
 		private ImplicitGrab(ImplicitGrabs implicitGrabs, ButtonPress press) {
 			this(implicitGrabs.window, implicitGrabs.surface, press.button, press.serial, implicitGrabs.startWorldPos, implicitGrabs.startSurfaceLocal);

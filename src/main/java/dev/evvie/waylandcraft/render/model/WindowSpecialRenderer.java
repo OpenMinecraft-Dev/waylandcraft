@@ -53,7 +53,7 @@ public class WindowSpecialRenderer implements SpecialModelRenderer<Identifier> {
 		consumer.accept(pose.pose().transformPosition(1, 1, 0, new Vector3f()));
 	}
 	
-	public static record IconRenderer(int light, int overlayCoords) implements SubmitNodeCollector.CustomGeometryRenderer {
+	public record IconRenderer(int light, int overlayCoords) implements SubmitNodeCollector.CustomGeometryRenderer {
 		
 		@Override
 		public void render(Pose pose, VertexConsumer buffer) {
@@ -84,7 +84,7 @@ public class WindowSpecialRenderer implements SpecialModelRenderer<Identifier> {
 		
 	}
 	
-	public static record Unbaked() implements SpecialModelRenderer.Unbaked<Identifier> {
+	public record Unbaked() implements SpecialModelRenderer.Unbaked<Identifier> {
 		
 		public static final MapCodec<Unbaked> MAP_CODEC = MapCodec.unit(new Unbaked());
 		

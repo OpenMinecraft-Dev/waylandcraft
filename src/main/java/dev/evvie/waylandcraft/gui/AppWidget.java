@@ -24,8 +24,8 @@ public class AppWidget extends AbstractWidget {
 	private static final Identifier SLOT_THINGY_SELECTED = Identifier.fromNamespaceAndPath(WaylandCraftCommon.MOD_ID, "textures/gui/slot_thingy_selected_overlay.png");
 	
 	public final DesktopEntry entry;
-	private Consumer<DesktopEntry> launchAction;
-	private Font font;
+	private final Consumer<DesktopEntry> launchAction;
+	private final Font font;
 	
 	public AppWidget(DesktopEntry entry, Consumer<DesktopEntry> launchAction) {
 		super(0, 0, 0, 0, Component.literal(getTitle(entry)));

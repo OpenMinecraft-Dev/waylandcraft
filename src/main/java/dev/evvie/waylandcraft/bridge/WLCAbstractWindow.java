@@ -52,7 +52,7 @@ public abstract class WLCAbstractWindow {
 		return isAlive() && getSurfaceTree().getBuffer() != null;
 	}
 	
-	public static record SurfaceGeometry(int x, int y, int width, int height) {
+	public record SurfaceGeometry(int x, int y, int width, int height) {
 	}
 	
 }

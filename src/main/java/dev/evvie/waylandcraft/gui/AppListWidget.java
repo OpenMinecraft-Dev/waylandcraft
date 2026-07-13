@@ -26,8 +26,8 @@ public class AppListWidget extends AbstractContainerWidget {
 	
 	public static final int DEFAULT_WIDTH = ELEMENT_WIDTH + 8 + 6;
 	
-	private ArrayList<AppWidget> children = new ArrayList<AppWidget>();
-	private Consumer<DesktopEntry> launchAction;
+	private final ArrayList<AppWidget> children = new ArrayList<AppWidget>();
+	private final Consumer<DesktopEntry> launchAction;
 	
 	private int maxScroll = 0;
 	private int scroll = 0;
@@ -80,7 +80,7 @@ public class AppListWidget extends AbstractContainerWidget {
 			return;
 		}
 		
-		int top = children.get(0).getY();
+		int top = children.getFirst().getY();
 		int bottomScroll = widget.getBottom() - top - height;
 		int topScroll = widget.getY() - top;
 		

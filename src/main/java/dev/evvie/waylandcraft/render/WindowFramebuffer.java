@@ -8,9 +8,9 @@ import com.mojang.blaze3d.opengl.GlTexture;
 import dev.evvie.waylandcraft.WaylandCraft;
 import dev.evvie.waylandcraft.bridge.WLCAbstractWindow;
 import dev.evvie.waylandcraft.network.serverbound.ServerboundFrameUpdatePayload;
-import dev.evvie.waylandcraft.settings.WaylandCraftSettings;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.util.profiling.ProfilerFiller;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4fc;
 
 import com.mojang.blaze3d.buffers.GpuBuffer;
@@ -88,8 +88,8 @@ public class WindowFramebuffer implements FramebufferRenderable {
 		.build()
 	);
 	
-	private static DynamicUniformStorage<WindowInfoUniform> uniformStorage = null;
-	private static boolean debugDamage = false;
+	private static DynamicUniformStorage<@NotNull WindowInfoUniform> uniformStorage = null;
+	private static final boolean debugDamage = false;
 	
 	public final WLCSurface surfaceTree;
 	private TextureTarget tempTarget = null;
@@ -112,7 +112,7 @@ public class WindowFramebuffer implements FramebufferRenderable {
 	
 	private static void ensureUniformStorage() {
 		if(uniformStorage == null) {
-			uniformStorage = new DynamicUniformStorage<WindowInfoUniform>("window framebuffer", WindowInfoUniform.SIZE, 2);
+			uniformStorage = new DynamicUniformStorage<>("window framebuffer", WindowInfoUniform.SIZE, 2);
 		}
 	}
 	
@@ -197,29 +197,31 @@ public class WindowFramebuffer implements FramebufferRenderable {
 		GpuBufferSlice opaqueUniforms = uniformStorage.writeUniform(new WindowInfoUniform(poseStack.last().pose(), false));
 		
 		try {
-			try(RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "window framebuffer", tempTarget.getColorTextureView(), OptionalInt.of(0x00000000))) {
-				pass.setPipeline(WINDOW_PIPELINE);
-				for (CompiledBufferDraw element : elements) {
-                    profiler.push("temp_target");
-					pass.setUniform("window_info", element.alpha ? alphaUniforms : opaqueUniforms);
-					pass.bindTexture("sampler", element.textureView, RenderSystem.getSamplerCache().getClampToEdge(FilterMode.NEAREST));
-					pass.setVertexBuffer(0, element.vertexBuffer);
-					pass.setIndexBuffer(element.indexBuffer, element.indexType);
-					pass.drawIndexed(0, 0, element.indexCount, 1);
-                    profiler.pop();
+            if (tempTarget.getColorTextureView() != null) {
+                try(RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "window framebuffer", tempTarget.getColorTextureView(), OptionalInt.of(0x00000000))) {
+                    pass.setPipeline(WINDOW_PIPELINE);
+                    for (CompiledBufferDraw element : elements) {
+profiler.push("temp_target");
+                        pass.setUniform("window_info", element.alpha ? alphaUniforms : opaqueUniforms);
+                        pass.bindTexture("sampler", element.textureView, RenderSystem.getSamplerCache().getClampToEdge(FilterMode.NEAREST));
+                        pass.setVertexBuffer(0, element.vertexBuffer);
+                        pass.setIndexBuffer(element.indexBuffer, element.indexType);
+                        pass.drawIndexed(0, 0, element.indexCount, 1);
+profiler.pop();
 
-                    profiler.push("network_upload");
-                    if (System.currentTimeMillis() - lastUpdate >= WaylandCraft.instance.settings.getRemoteUpdateInterval()) {
-                        var buff = fetchUpdatedArea(surfaceTree, ((GlTexture) element.textureView.texture()).glId());
-                        if (buff.remaining() > 0 && Minecraft.getInstance().getConnection() != null) {
-                            ClientPlayNetworking.send(new ServerboundFrameUpdatePayload(window.getHandle(), (int) element.x, (int) element.y, (int) element.w, (int) element.h, buff, width, height));
-                        }
-                        lastUpdate = System.currentTimeMillis();
+profiler.push("network_upload");
+if (System.currentTimeMillis() - lastUpdate >= WaylandCraft.instance.settings.getRemoteUpdateInterval()) {
+var buff = fetchUpdatedArea(surfaceTree, ((GlTexture) element.textureView.texture()).glId());
+if (buff.remaining() > 0 && Minecraft.getInstance().getConnection() != null) {
+ClientPlayNetworking.send(new ServerboundFrameUpdatePayload(window.getHandle(), (int) element.x, (int) element.y, (int) element.w, (int) element.h, buff, width, height));
+}
+lastUpdate = System.currentTimeMillis();
+}
+profiler.pop();
                     }
-                    profiler.pop();
-				}
-			}
-		}
+                }
+            }
+        }
 		finally {
 			for(CompiledBufferDraw element : elements) {
 				element.vertexBuffer.close();
@@ -229,11 +231,13 @@ public class WindowFramebuffer implements FramebufferRenderable {
 		if(debugDamage) drawDebugDamage(opaqueUniforms);
 
         profiler.push("blit");
-		try(RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "window framebuffer unpremultiply", target.getColorTextureView(), OptionalInt.empty())) {
-			pass.setPipeline(UNPREMULTIPLY_PIPELINE);
-			pass.bindTexture("sampler", tempTarget.getColorTextureView(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.NEAREST));
-			pass.draw(0, 3);
-		}
+        if (target.getColorTextureView() != null) {
+            try(RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "window framebuffer unpremultiply", target.getColorTextureView(), OptionalInt.empty())) {
+                pass.setPipeline(UNPREMULTIPLY_PIPELINE);
+                pass.bindTexture("sampler", tempTarget.getColorTextureView(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.NEAREST));
+                pass.draw(0, 3);
+            }
+        }
         profiler.pop();
 	}
 	
@@ -249,16 +253,18 @@ public class WindowFramebuffer implements FramebufferRenderable {
 		}
 		
 		try {
-			try(RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "window framebuffer damage", tempTarget.getColorTextureView(), OptionalInt.empty())) {
-				pass.setPipeline(DAMAGE_PIPELINE);
-				pass.setUniform("window_info", opaqueUniforms);
-				for(CompiledBufferDraw element : damageElements) {
-					pass.setVertexBuffer(0, element.vertexBuffer);
-					pass.setIndexBuffer(element.indexBuffer, element.indexType);
-					pass.drawIndexed(0, 0, element.indexCount, 1);
-				}
-			}
-		}
+            if (tempTarget.getColorTextureView() != null) {
+                try(RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "window framebuffer damage", tempTarget.getColorTextureView(), OptionalInt.empty())) {
+                    pass.setPipeline(DAMAGE_PIPELINE);
+                    pass.setUniform("window_info", opaqueUniforms);
+                    for(CompiledBufferDraw element : damageElements) {
+                        pass.setVertexBuffer(0, element.vertexBuffer);
+                        pass.setIndexBuffer(element.indexBuffer, element.indexType);
+                        pass.drawIndexed(0, 0, element.indexCount, 1);
+                    }
+                }
+            }
+        }
 		finally {
 			for(CompiledBufferDraw element : damageElements) {
 				element.vertexBuffer.close();
@@ -289,7 +295,7 @@ public class WindowFramebuffer implements FramebufferRenderable {
 		return new BufferDraw(buf.getTextureView(), x, y, w, h, crop_x1, crop_y1, crop_x2, crop_y2, buf.format != BufferTexture.FORMAT_XRGB8888);
 	}
 	
-	private static record CompiledBufferDraw(GpuTextureView textureView, GpuBuffer vertexBuffer, GpuBuffer indexBuffer, int indexCount, VertexFormat.IndexType indexType, boolean alpha, float x, float y, float w, float h) {
+	private record CompiledBufferDraw(GpuTextureView textureView, GpuBuffer vertexBuffer, GpuBuffer indexBuffer, int indexCount, VertexFormat.IndexType indexType, boolean alpha, float x, float y, float w, float h) {
 	}
 	
 	private record BufferDraw(GpuTextureView textureView, float x, float y, float w, float h, float u1, float v1, float u2, float v2, boolean alpha) {
@@ -385,12 +391,12 @@ public class WindowFramebuffer implements FramebufferRenderable {
 		
 	}
 	
-	private static record WindowInfoUniform(Matrix4fc mat, boolean alpha) implements DynamicUniform {
+	private record WindowInfoUniform(Matrix4fc mat, boolean alpha) implements DynamicUniform {
 		
 		public static final int SIZE = new Std140SizeCalculator().putMat4f().putFloat().get();
 		
 		@Override
-		public void write(ByteBuffer byteBuffer) {
+		public void write(@NotNull ByteBuffer byteBuffer) {
 			Std140Builder.intoBuffer(byteBuffer).putMat4f(mat).putFloat(alpha ? 0.0f : 1.0f);
 		}
 		

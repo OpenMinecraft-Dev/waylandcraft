@@ -41,10 +41,10 @@ import net.minecraft.util.ARGB;
 
 public class WindowManagerScreen extends Screen {
 	
-	private WaylandCraft wlc;
+	private final WaylandCraft wlc;
 	
 	private SelectorWidget<WLCToplevel> selector;
-	private ArrayList<Button> buttons = new ArrayList<Button>();
+	private final ArrayList<Button> buttons = new ArrayList<Button>();
 	private Button grabButton;
 	private Button resizeButton;
 	private Button hideButton;
@@ -110,9 +110,8 @@ public class WindowManagerScreen extends Screen {
 				if(entry == null) return null;
 				
 				Identifier icon = entry.getIcon();
-				if(icon == null) return null;
-				
-				return icon;
+
+                return icon;
 			}
 		};
 		addRenderableWidget(selector);
@@ -243,8 +242,8 @@ public class WindowManagerScreen extends Screen {
 		
 		/* <HACK> */
 		/* The following code makes the game remember at what position the cursor is after it was moved in disabled mode during resize */
-		double mouseX[] = new double[1];
-		double mouseY[] = new double[1];
+		double[] mouseX = new double[1];
+		double[] mouseY = new double[1];
 		GLFW.glfwGetCursorPos(window, mouseX, mouseY);
 		
 		MouseHandler mouseHandler = Minecraft.getInstance().mouseHandler;
@@ -267,7 +266,7 @@ public class WindowManagerScreen extends Screen {
 		
 		context.outline(leftMargin - 1, topMargin - 1, areaWidth + 2, areaHeight + 2, Color.white.getRGB());
 		
-		guiScale = (int) Minecraft.getInstance().getWindow().getGuiScale();
+		guiScale = Minecraft.getInstance().getWindow().getGuiScale();
 		wlc.bridge.setOutputBounds(areaWidth * guiScale, areaHeight * guiScale);
 		
 		WLCToplevel[] toplevels = wlc.bridge.getMappedToplevels();
@@ -602,10 +601,9 @@ public class WindowManagerScreen extends Screen {
 	}
 	
 	private void preparePopupTree(WindowTree tree, float x, float y) {
-		if(tree.window instanceof WLCPopup) {
-			WLCPopup popup = (WLCPopup) tree.window;
-			
-			x += popup.getParent().geometry.x();
+		if(tree.window instanceof WLCPopup popup) {
+
+            x += popup.getParent().geometry.x();
 			y += popup.getParent().geometry.y();
 			
 			x += popup.offsetX;
@@ -680,7 +678,7 @@ public class WindowManagerScreen extends Screen {
 		
 	}
 	
-	private static record HoveredSurface(WLCSurface surface, float rx, float ry) {}
+	private record HoveredSurface(WLCSurface surface, float rx, float ry) {}
 	
 	private static class ImplicitGrab {
 		

@@ -28,7 +28,7 @@ import net.minecraft.resources.Identifier;
 
 public class WaylandHudRenderer {
 	
-	private WaylandCraft wlc;
+	private final WaylandCraft wlc;
 	private static final Identifier TIME_DATE = Identifier.fromNamespaceAndPath(WaylandCraftCommon.MOD_ID, "time-date");
 	private static final Identifier APP_LIST = Identifier.fromNamespaceAndPath(WaylandCraftCommon.MOD_ID, "app-list");
 	private static final Identifier PINNED_TOPLEVEL = Identifier.fromNamespaceAndPath(WaylandCraftCommon.MOD_ID, "pinned-toplevel");
@@ -97,7 +97,7 @@ public class WaylandHudRenderer {
 	}
 	
 	private void extractPinnedToplevelRenderState(GuiGraphicsExtractor context, DeltaTracker deltaTracker) {
-		int guiScale = (int) Minecraft.getInstance().getWindow().getGuiScale();
+		int guiScale = Minecraft.getInstance().getWindow().getGuiScale();
 		
 		if(wlc.pinnedToplevel != null && !wlc.pinnedToplevel.isAlive()) wlc.pinnedToplevel = null;
 		if(wlc.pinnedToplevel != null) {
@@ -120,7 +120,7 @@ public class WaylandHudRenderer {
 	}
 	
 	private void extractDNDIconRenderState(GuiGraphicsExtractor context, DeltaTracker tracker) {
-		int guiScale = (int) Minecraft.getInstance().getWindow().getGuiScale();
+		int guiScale = Minecraft.getInstance().getWindow().getGuiScale();
 		
 		IconSurface dndIcon = wlc.bridge.dndIcon;
 		if(dndIcon != null && dndIcon.framebuffer != null) {

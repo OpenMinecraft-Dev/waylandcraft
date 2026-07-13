@@ -32,7 +32,7 @@ public enum CursorShape {
 	// Serialization number for cursor shape. Should match cursor-shape wayland protocol for all cursors except extensions.
 	public final int id;
 	
-	private CursorShape(int id) {
+	CursorShape(int id) {
 		this.id = id;
 	}
 	

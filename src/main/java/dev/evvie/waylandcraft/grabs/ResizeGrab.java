@@ -13,13 +13,13 @@ public class ResizeGrab extends PointerGrab {
 	private final WLCToplevel toplevel;
 	private final Vec3 initialDisplayPos;
 	
-	private Vec3 initialSurfaceLocal;
+	private final Vec3 initialSurfaceLocal;
 	
 	private final ResizeEdges edges;
 	private final SurfaceGeometry initialGeometry;
 	
-	private int width;
-	private int height;
+	private final int width;
+	private final int height;
 	
 	public ResizeGrab(ImplicitGrab implicit, int edges) {
 		super(implicit.button());
@@ -52,7 +52,7 @@ public class ResizeGrab extends PointerGrab {
 		int vertical = edges.verticalMult();
 		
 		Vec3 surfLocalInitial = window.worldToLocal(initialDisplayPos);
-		Vec3 diff = hitResult.surfaceLocalOrigin.subtract(surfLocalInitial).subtract(initialSurfaceLocal);
+		Vec3 diff = hitResult.surfaceLocalOrigin().subtract(surfLocalInitial).subtract(initialSurfaceLocal);
 		int dx = (int) diff.x * horizontal;
 		int dy = (int) diff.y * vertical;
 		
@@ -73,48 +73,48 @@ public class ResizeGrab extends PointerGrab {
 		wlc.bridge.resizeToplevelInteractive(toplevel, nwidth, nheight);
 	}
 	
-	private static enum ResizeEdges {
+	private enum ResizeEdges {
 		
 		NONE, TOP, BOTTOM, LEFT, TOP_LEFT, BOTTOM_LEFT, RIGHT, TOP_RIGHT, BOTTOM_RIGHT;
 		
 		/* I know these are supposed to be bitmasks. Too bad! */
 		
 		public static ResizeEdges forNumber(int num) {
-			switch(num) {
-			case 1: return TOP;
-			case 2: return BOTTOM;
-			case 4: return LEFT;
-			case 5: return TOP_LEFT;
-			case 6: return BOTTOM_LEFT;
-			case 8: return RIGHT;
-			case 9: return TOP_RIGHT;
-			case 10: return BOTTOM_RIGHT;
-			default: return NONE;
-			}
+            return switch (num) {
+                case 1 -> TOP;
+                case 2 -> BOTTOM;
+                case 4 -> LEFT;
+                case 5 -> TOP_LEFT;
+                case 6 -> BOTTOM_LEFT;
+                case 8 -> RIGHT;
+                case 9 -> TOP_RIGHT;
+                case 10 -> BOTTOM_RIGHT;
+                default -> NONE;
+            };
 		}
 		
 		public int horizontalMult() {
-			switch(this) {
-			case RIGHT: return 1;
-			case TOP_RIGHT: return 1;
-			case BOTTOM_RIGHT: return 1;
-			case LEFT: return -1;
-			case TOP_LEFT: return -1;
-			case BOTTOM_LEFT: return -1;
-			default: return 0;
-			}
+            return switch (this) {
+                case RIGHT -> 1;
+                case TOP_RIGHT -> 1;
+                case BOTTOM_RIGHT -> 1;
+                case LEFT -> -1;
+                case TOP_LEFT -> -1;
+                case BOTTOM_LEFT -> -1;
+                default -> 0;
+            };
 		}
 		
 		public int verticalMult() {
-			switch(this) {
-			case BOTTOM: return 1;
-			case BOTTOM_RIGHT: return 1;
-			case BOTTOM_LEFT: return 1;
-			case TOP: return -1;
-			case TOP_RIGHT: return -1;
-			case TOP_LEFT: return -1;
-			default: return 0;
-			}
+            return switch (this) {
+                case BOTTOM -> 1;
+                case BOTTOM_RIGHT -> 1;
+                case BOTTOM_LEFT -> 1;
+                case TOP -> -1;
+                case TOP_RIGHT -> -1;
+                case TOP_LEFT -> -1;
+                default -> 0;
+            };
 		}
 		
 	}

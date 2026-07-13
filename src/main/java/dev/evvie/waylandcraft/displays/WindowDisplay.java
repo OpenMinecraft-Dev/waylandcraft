@@ -231,49 +231,39 @@ public class WindowDisplay extends AbstractWindowDisplay {
 			}
 		}
 	}
-	
-	public static class DisplayHitResult {
-		
-		// WindowDisplay that was raycasted
-		public final WindowDisplay target;
-		
-		// Surface that was hit, if any
-		public final @Nullable WLCSurface surface;
-		
-		// World position
-		public final Vec3 position;
-		
-		// Coordinates relative to window geometry origin
-		public final Vec3 geometryLocal;
-		
-		// Root surface surface-local coordinates
-		public final Vec3 surfaceLocalOrigin;
-		
-		// Surface-local coordinates relative to hit surface. Always guaranteed to not be null, if `surface` is non-null.
-		public final @Nullable Vec3 surfaceLocalRelative;
-		
-		// Calculated distance
-		public final double dist;
-		
-		public DisplayHitResult(WindowDisplay target, WLCSurface surface, Vec3 position, Vec3 geometryLocal, Vec3 surfaceLocalOrigin, Vec3 surfaceLocalRelative, double dist) {
-			this.target = target;
-			this.surface = surface;
-			this.position = position;
-			this.geometryLocal = geometryLocal;
-			this.surfaceLocalOrigin = surfaceLocalOrigin;
-			this.surfaceLocalRelative = surfaceLocalRelative;
-			this.dist = dist;
-		}
-		
-		public boolean isMiss() {
-			return surface == null;
-		}
-		
-		@Override
-		public String toString() {
-			return "{target=" + target + ", surface=" + surface + ", position=" + position + ", local=" + surfaceLocalOrigin + ", relative=" + surfaceLocalRelative + ", dist=" + dist + "}";
-		}
-		
-	}
+
+    /**
+     * @param target               WindowDisplay that was raycasted
+     * @param surface              Surface that was hit, if any
+     * @param position             World position
+     * @param geometryLocal        Coordinates relative to window geometry origin
+     * @param surfaceLocalOrigin   Root surface surface-local coordinates
+     * @param surfaceLocalRelative Surface-local coordinates relative to hit surface. Always guaranteed to not be null, if `surface` is non-null.
+     * @param dist                 Calculated distance
+     */
+    public record DisplayHitResult(WindowDisplay target, @Nullable WLCSurface surface, Vec3 position,
+                                   Vec3 geometryLocal, Vec3 surfaceLocalOrigin, @Nullable Vec3 surfaceLocalRelative,
+                                   double dist) {
+
+        public DisplayHitResult(WindowDisplay target, WLCSurface surface, Vec3 position, Vec3 geometryLocal, Vec3 surfaceLocalOrigin, Vec3 surfaceLocalRelative, double dist) {
+            this.target = target;
+            this.surface = surface;
+            this.position = position;
+            this.geometryLocal = geometryLocal;
+            this.surfaceLocalOrigin = surfaceLocalOrigin;
+            this.surfaceLocalRelative = surfaceLocalRelative;
+            this.dist = dist;
+        }
+
+        public boolean isMiss() {
+            return surface == null;
+        }
+
+        @Override
+        public String toString() {
+            return "{target=" + target + ", surface=" + surface + ", position=" + position + ", local=" + surfaceLocalOrigin + ", relative=" + surfaceLocalRelative + ", dist=" + dist + "}";
+        }
+
+    }
 	
 }

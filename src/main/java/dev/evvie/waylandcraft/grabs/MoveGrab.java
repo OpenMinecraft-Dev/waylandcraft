@@ -34,7 +34,7 @@ public class MoveGrab extends PointerGrab {
 		DisplayHitResult hitResult = window.intersect(pos, view);
 		if(hitResult == null) return;
 		
-		Vec3 diff = hitResult.surfaceLocalOrigin.subtract(initialSurfaceLocal);
+		Vec3 diff = hitResult.surfaceLocalOrigin().subtract(initialSurfaceLocal);
 		window.pivot = window.pivot.add(window.localX().scale(diff.x).add(window.localY().scale(diff.y)));
 	}
 	

@@ -50,34 +50,34 @@ public class GuiMixin {
 	
 	private @Nullable Identifier crosshairForCursor(@Nullable CursorShape cursor) {
 		if(cursor == null) return null;
-		
-		switch(cursor) {
-		case HIDE: return null;
-		case DEFAULT: return null;
-		case HELP: return HELP_CROSSHAIR;
-		case POINTER: return POINTER_CROSSHAIR;
-		case WAIT: return WAIT_CROSSHAIR;
-		case TEXT: return TEXT_CROSSHAIR;
-		case VERTICAL_TEXT: return VTEXT_CROSSHAIR;
-		case E_RESIZE: return LEFT_RIGHT_CROSSHAIR;
-		case N_RESIZE: return TOP_BOTTOM_CROSSHAIR;
-		case NE_RESIZE: return TRBL_DIAGONAL_CROSSHAIR;
-		case NW_RESIZE: return TLBR_DIAGONAL_CROSSHAIR;
-		case S_RESIZE: return TOP_BOTTOM_CROSSHAIR;
-		case SE_RESIZE: return TLBR_DIAGONAL_CROSSHAIR;
-		case SW_RESIZE: return TRBL_DIAGONAL_CROSSHAIR;
-		case W_RESIZE: return LEFT_RIGHT_CROSSHAIR;
-		case EW_RESIZE: return LEFT_RIGHT_CROSSHAIR;
-		case NS_RESIZE: return TOP_BOTTOM_CROSSHAIR;
-		case NESW_RESIZE: return TRBL_DIAGONAL_CROSSHAIR;
-		case NWSE_RESIZE: return TLBR_DIAGONAL_CROSSHAIR;
-		case COL_RESIZE: return LEFT_RIGHT_CROSSHAIR;
-		case ROW_RESIZE: return TOP_BOTTOM_CROSSHAIR;
-		case ZOOM_IN: return ZOOM_IN_CROSSHAIR;
-		case ZOOM_OUT: return ZOOM_OUT_CROSSHAIR;
-		case ALL_RESIZE: return MOVE_CROSSHAIR;
-		default: return null;
-		}
+
+        return switch (cursor) {
+            case HIDE -> null;
+            case DEFAULT -> null;
+            case HELP -> HELP_CROSSHAIR;
+            case POINTER -> POINTER_CROSSHAIR;
+            case WAIT -> WAIT_CROSSHAIR;
+            case TEXT -> TEXT_CROSSHAIR;
+            case VERTICAL_TEXT -> VTEXT_CROSSHAIR;
+            case E_RESIZE -> LEFT_RIGHT_CROSSHAIR;
+            case N_RESIZE -> TOP_BOTTOM_CROSSHAIR;
+            case NE_RESIZE -> TRBL_DIAGONAL_CROSSHAIR;
+            case NW_RESIZE -> TLBR_DIAGONAL_CROSSHAIR;
+            case S_RESIZE -> TOP_BOTTOM_CROSSHAIR;
+            case SE_RESIZE -> TLBR_DIAGONAL_CROSSHAIR;
+            case SW_RESIZE -> TRBL_DIAGONAL_CROSSHAIR;
+            case W_RESIZE -> LEFT_RIGHT_CROSSHAIR;
+            case EW_RESIZE -> LEFT_RIGHT_CROSSHAIR;
+            case NS_RESIZE -> TOP_BOTTOM_CROSSHAIR;
+            case NESW_RESIZE -> TRBL_DIAGONAL_CROSSHAIR;
+            case NWSE_RESIZE -> TLBR_DIAGONAL_CROSSHAIR;
+            case COL_RESIZE -> LEFT_RIGHT_CROSSHAIR;
+            case ROW_RESIZE -> TOP_BOTTOM_CROSSHAIR;
+            case ZOOM_IN -> ZOOM_IN_CROSSHAIR;
+            case ZOOM_OUT -> ZOOM_OUT_CROSSHAIR;
+            case ALL_RESIZE -> MOVE_CROSSHAIR;
+            default -> null;
+        };
 	}
 	
 }

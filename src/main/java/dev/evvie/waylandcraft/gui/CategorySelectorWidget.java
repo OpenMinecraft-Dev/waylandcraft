@@ -17,9 +17,9 @@ import net.minecraft.resources.Identifier;
 public class CategorySelectorWidget extends AbstractWidget {
 	
 	private int selected = -1;
-	private List<Entry> entries;
+	private final List<Entry> entries;
 	private int elementSize;
-	private Consumer<Integer> selectAction;
+	private final Consumer<Integer> selectAction;
 	
 	public CategorySelectorWidget(Component component, Consumer<Integer> selectAction, List<Entry> entries) {
 		super(0, 0, 0, 0, component);
@@ -101,6 +101,6 @@ public class CategorySelectorWidget extends AbstractWidget {
 	protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
 	}
 	
-	public static record Entry(Component title, Identifier icon) {}
+	public record Entry(Component title, Identifier icon) {}
 	
 }

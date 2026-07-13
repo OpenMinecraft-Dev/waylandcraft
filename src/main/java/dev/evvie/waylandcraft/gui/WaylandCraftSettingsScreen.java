@@ -15,10 +15,10 @@ import net.minecraft.network.chat.Component;
 
 public class WaylandCraftSettingsScreen extends Screen {
 	
-	private WaylandCraft wlc;
+	private final WaylandCraft wlc;
 	private ScrollableLayout layout;
 	
-	private ArrayList<SettingsWidget> settingsWidgets = new ArrayList<>();
+	private final ArrayList<SettingsWidget> settingsWidgets = new ArrayList<>();
 	
 	public WaylandCraftSettingsScreen(WaylandCraft wlc) {
 		super(Component.literal("Waylandcraft Settings"));
