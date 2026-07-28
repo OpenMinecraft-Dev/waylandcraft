@@ -164,7 +164,7 @@ public class WindowFramebuffer implements FramebufferRenderable {
 		return "wayland-framebuffer-" + this.hashCode() + "-" + surfaceTree.hashCode();
 	}
 
-    public ByteBuffer fetchUpdatedArea(WLCSurface surface, int gltext) {
+    public synchronized ByteBuffer fetchUpdatedArea(WLCSurface surface, int gltext) {
         ByteBuffer bf = WindowCopyBuffer.request(surface, 4 * surface.width() * surface.height());
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, gltext);
         GL11.glReadPixels(0, 0, surface.width(), surface.height(), GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, bf);
@@ -207,17 +207,18 @@ profiler.push("temp_target");
                         pass.setVertexBuffer(0, element.vertexBuffer);
                         pass.setIndexBuffer(element.indexBuffer, element.indexType);
                         pass.drawIndexed(0, 0, element.indexCount, 1);
-profiler.pop();
+                        profiler.pop();
 
-profiler.push("network_upload");
-if (System.currentTimeMillis() - lastUpdate >= WaylandCraft.instance.settings.getRemoteUpdateInterval()) {
-var buff = fetchUpdatedArea(surfaceTree, ((GlTexture) element.textureView.texture()).glId());
-if (buff.remaining() > 0 && Minecraft.getInstance().getConnection() != null) {
-ClientPlayNetworking.send(new ServerboundFrameUpdatePayload(window.getHandle(), (int) element.x, (int) element.y, (int) element.w, (int) element.h, buff, width, height));
-}
-lastUpdate = System.currentTimeMillis();
-}
-profiler.pop();
+                        profiler.push("network_upload");
+
+                        if (System.currentTimeMillis() - lastUpdate >= WaylandCraft.instance.settings.getRemoteUpdateInterval()) {
+                            var buff = fetchUpdatedArea(surfaceTree, ((GlTexture) element.textureView.texture()).glId());
+                            if (buff.remaining() > 0 && Minecraft.getInstance().getConnection() != null) {
+                                ClientPlayNetworking.send(new ServerboundFrameUpdatePayload(window.getHandle(), (int) element.x, (int) element.y, (int) element.w, (int) element.h, buff, width, height));
+                            }
+                            lastUpdate = System.currentTimeMillis();
+                        }
+                        profiler.pop();
                     }
                 }
             }

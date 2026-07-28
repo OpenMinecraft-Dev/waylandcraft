@@ -175,7 +175,7 @@ public class WaylandCraft implements ClientModInitializer {
 		if(bridge == null) return;
 		
 		displays.forEach(d -> {
-            d.render(ctx);
+            // d.render(ctx);
 
             ClientPlayNetworking.send(new ServerboundDisplayUpdatePayload(d.window.getHandle(), d.pivot.x, d.pivot.y, d.pivot.z, d.normal.x, d.normal.y, d.normal.z, d.down.x, d.down.y, d.down.z));
         });

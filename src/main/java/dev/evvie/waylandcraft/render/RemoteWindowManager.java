@@ -45,7 +45,7 @@ public class RemoteWindowManager {
 
     public static void handleWindowClose(GameProfile profile, long handle) {
        var l = windows.stream().filter(a -> a.profile.name().equals(profile.name())).filter(a -> a.handle == handle).findFirst();
-        l.ifPresent(remoteWindow -> windows.remove(remoteWindow));
+        l.ifPresent(windows::remove);
     }
 
     public static void handleDisplay(GameProfile profile, long handle, Vec3 pivot, Vec3 normal, Vec3 down) {
@@ -60,9 +60,7 @@ public class RemoteWindowManager {
     }
 
     public static void renderWorld(LevelRenderContext ctx) {
-        windows.forEach(a -> {
-            a.display.render(ctx);
-        });
+        windows.forEach(a -> a.display.render(ctx));
     }
 
     public static class RemoteWindow {

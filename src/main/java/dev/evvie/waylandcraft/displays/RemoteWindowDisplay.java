@@ -45,15 +45,11 @@ public class RemoteWindowDisplay extends AbstractWindowDisplay {
             return;
         }
 
-        Function<Identifier, RenderType> renderType;
-
         // Front quad
-        renderType = WINDOW_CUTOUT_ANTIALIAS;
-        collector.submitCustomGeometry(poseStack, renderType.apply(window.ident), new FramebufferRenderInstance(origin, spanX, spanY, false));
+        collector.submitCustomGeometry(poseStack, WINDOW_CUTOUT_ANTIALIAS.apply(window.ident), new FramebufferRenderInstance(origin, spanX, spanY, false));
 
         // Back quad
-        renderType = WINDOW_BACKGROUND_CUTOUT;
-        collector.submitCustomGeometry(poseStack, renderType.apply(window.ident), new FramebufferRenderInstance(origin, spanX, spanY, true));
+        collector.submitCustomGeometry(poseStack, WINDOW_CUTOUT_ANTIALIAS.apply(window.ident), new FramebufferRenderInstance(origin, spanX, spanY, true));
     }
 
     @Override

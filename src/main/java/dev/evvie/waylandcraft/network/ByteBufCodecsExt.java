@@ -52,7 +52,9 @@ public interface ByteBufCodecsExt {
                 if (length < 0) {
                     return null;
                 }
-                var buf = ServerTempBuffer.request(length);
+
+                // var buf = ServerTempBuffer.request(length);
+                var buf = ByteBuffer.allocate(length);
                 input.readBytes(buf);
                 return buf;
             }
