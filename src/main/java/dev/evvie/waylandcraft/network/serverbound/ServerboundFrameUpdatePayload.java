@@ -15,7 +15,7 @@ public record ServerboundFrameUpdatePayload(long windowHandle, int x, int y, int
 
     public static final CustomPacketPayload.Type<ServerboundFrameUpdatePayload> TYPE = new CustomPacketPayload.Type<>(FRAME_UPDATE_PAYLOAD_ID);
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundFrameUpdatePayload> CODEC = StreamCodec.composite(ByteBufCodecs.LONG, ServerboundFrameUpdatePayload::windowHandle, ByteBufCodecs.VAR_INT, ServerboundFrameUpdatePayload::x, ByteBufCodecs.VAR_INT, ServerboundFrameUpdatePayload::y, ByteBufCodecs.VAR_INT, ServerboundFrameUpdatePayload::w, ByteBufCodecs.VAR_INT, ServerboundFrameUpdatePayload::h, ByteBufCodecsExt.CLIENTCOMPRESS_FRAME, ServerboundFrameUpdatePayload::buffer, ByteBufCodecs.VAR_INT, ServerboundFrameUpdatePayload::windowWidth, ByteBufCodecs.VAR_INT, ServerboundFrameUpdatePayload::windowHeight, ServerboundFrameUpdatePayload::new);
+    public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundFrameUpdatePayload> CODEC = StreamCodec.composite(ByteBufCodecs.LONG, ServerboundFrameUpdatePayload::windowHandle, ByteBufCodecs.VAR_INT, ServerboundFrameUpdatePayload::x, ByteBufCodecs.VAR_INT, ServerboundFrameUpdatePayload::y, ByteBufCodecs.VAR_INT, ServerboundFrameUpdatePayload::w, ByteBufCodecs.VAR_INT, ServerboundFrameUpdatePayload::h, ByteBufCodecsExt.COMPRESSED_FRAME, ServerboundFrameUpdatePayload::buffer, ByteBufCodecs.VAR_INT, ServerboundFrameUpdatePayload::windowWidth, ByteBufCodecs.VAR_INT, ServerboundFrameUpdatePayload::windowHeight, ServerboundFrameUpdatePayload::new);
 
     @Override
     public Type<? extends CustomPacketPayload> type() {

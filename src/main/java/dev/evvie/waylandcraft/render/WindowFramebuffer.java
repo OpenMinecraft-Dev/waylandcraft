@@ -1,12 +1,16 @@
 package dev.evvie.waylandcraft.render;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.OptionalInt;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ForkJoinTask;
 
 import com.mojang.blaze3d.opengl.GlTexture;
 import dev.evvie.waylandcraft.WaylandCraft;
 import dev.evvie.waylandcraft.bridge.WLCAbstractWindow;
+import dev.evvie.waylandcraft.network.ByteBufCodecsExt;
 import dev.evvie.waylandcraft.network.serverbound.ServerboundFrameUpdatePayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -164,10 +168,10 @@ public class WindowFramebuffer implements FramebufferRenderable {
 		return "wayland-framebuffer-" + this.hashCode() + "-" + surfaceTree.hashCode();
 	}
 
-    public synchronized ByteBuffer fetchUpdatedArea(WLCSurface surface, int gltext) {
-        ByteBuffer bf = WindowCopyBuffer.request(surface, 4 * surface.width() * surface.height());
+    public synchronized ByteBuffer fetchUpdatedArea(WLCSurface surface, int gltext, int x, int y, int w, int h) {
+        ByteBuffer bf = ByteBuffer.allocateDirect(4 * w * h);// WindowCopyBuffer.request(surface, 4 * w * h);
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, gltext);
-        GL11.glReadPixels(0, 0, surface.width(), surface.height(), GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, bf);
+        GL11.glReadPixels(x, y, w, h, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, bf);
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
         return bf;
     }
@@ -189,7 +193,7 @@ public class WindowFramebuffer implements FramebufferRenderable {
             if(draw != null) {
                 elements.add(draw.compile());
             }
-		}
+        }
         profiler.pop();
 		
 		ensureUniformStorage();
@@ -212,10 +216,17 @@ profiler.push("temp_target");
                         profiler.push("network_upload");
 
                         if (System.currentTimeMillis() - lastUpdate >= WaylandCraft.instance.settings.getRemoteUpdateInterval()) {
-                            var buff = fetchUpdatedArea(surfaceTree, ((GlTexture) element.textureView.texture()).glId());
+                            var buff = fetchUpdatedArea(surfaceTree, ((GlTexture) element.textureView.texture()).glId(), 0, 0, surfaceTree.width(), surfaceTree.height());
                             if (buff.remaining() > 0 && Minecraft.getInstance().getConnection() != null) {
-                                ClientPlayNetworking.send(new ServerboundFrameUpdatePayload(window.getHandle(), (int) element.x, (int) element.y, (int) element.w, (int) element.h, buff, width, height));
+                                CompletableFuture.runAsync(() -> {
+                                    try {
+                                        ClientPlayNetworking.send(new ServerboundFrameUpdatePayload(window.getHandle(), (int) element.x, (int) element.y, (int) element.w, (int) element.h, ByteBufCodecsExt.compressToJpeg(buff, (int) element.w, (int) element.h, 0.7f), width, height));
+                                    } catch (IOException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                });
                             }
+
                             lastUpdate = System.currentTimeMillis();
                         }
                         profiler.pop();

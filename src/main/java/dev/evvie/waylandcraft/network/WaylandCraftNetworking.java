@@ -1,5 +1,6 @@
 package dev.evvie.waylandcraft.network;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.concurrent.ForkJoinPool;
@@ -39,15 +40,19 @@ public class WaylandCraftNetworking {
 
         ClientPlayNetworking.registerGlobalReceiver(ClientboundFrameUpdateSyncPayload.TYPE, (payload, ctx) -> {
             if (payload.buffer() != null) {
-                var dir = ByteBuffer.allocateDirect(payload.w() * payload.h() * 4);
+                /*var dir = ByteBuffer.allocateDirect(payload.w() * payload.h() * 4);
                 try (Inflater def = new Inflater(false)) {
                     def.setInput(payload.buffer().rewind());
                     def.inflate(dir);
                 } catch (DataFormatException e) {
                     throw new RuntimeException(e);
-                }
+                }*/
 
-                RemoteWindowManager.handleUpdate(payload.profile(), payload.windowHandle(), payload.x(), payload.y(), payload.w(), payload.h(), payload.windowWidth(), payload.windowHeight(), dir.rewind());
+                try {
+                    RemoteWindowManager.handleUpdate(payload.profile(), payload.windowHandle(), payload.x(), payload.y(), payload.w(), payload.h(), payload.windowWidth(), payload.windowHeight(), ByteBufCodecsExt.decompressToDirect(payload.buffer().rewind()).rewind());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
         ClientPlayNetworking.registerGlobalReceiver(ClientboundTitleUpdateSyncPayload.TYPE, (payload, _) -> RemoteWindowManager.handleTitleUpdate(payload.profile(), payload.handle(), payload.title()));
