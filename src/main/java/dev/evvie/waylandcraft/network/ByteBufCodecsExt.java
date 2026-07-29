@@ -18,24 +18,40 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
+import java.util.HashMap;
 import java.util.zip.Deflater;
 
 public interface ByteBufCodecsExt {
     Logger logger = LoggerFactory.getLogger("Custom Codecs");
+    HashMap<Long, BufferedImage> images = new HashMap<>();
+    HashMap<Long, int[]> imageBuffers = new HashMap<>();
+    HashMap<Long, int[]> imageBuffers2 = new HashMap<>();
     private static ByteBuffer expandBuffer(ByteBuffer original, int newCapacity) {
         ByteBuffer expanded = ByteBuffer.allocateDirect(newCapacity);
         original.flip();
         expanded.put(original);
         return expanded;
     }
-    static ByteBuffer compressToJpeg(ByteBuffer pixelBuffer, int width, int height, float quality) throws IOException {
-        // 1. 将 ByteBuffer 转为 BufferedImage（ARGB → RGB，JPEG 无透明通道）
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        int[] pixels = new int[width * height];
+    static ByteBuffer compressToJpeg(ByteBuffer pixelBuffer, int width, int height, float quality, long l) throws IOException {
+        BufferedImage image;
 
-        // 读取所有像素（假设像素缓冲区为 ARGB 四个字节，顺序 A,R,G,B 或 R,G,B,A 取决于字节序）
-        // 这里以常见的 ARGB 顺序（即 int 中最高字节为 Alpha）为例，直接复制为 int 数组
-        ByteBuffer dup = pixelBuffer.duplicate(); // 不改变原指针
+        if (images.containsKey(l) && false) {
+            image = images.get(l);
+        }
+        else {
+            image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+            images.put(l, image);
+        }
+
+        int[] pixels = null;
+        if (imageBuffers.containsKey(l) && false) {
+            pixels = imageBuffers.get(l);
+        }
+        else {
+            pixels = new int[width * height];
+        }
+
+        ByteBuffer dup = pixelBuffer; // 不改变原指针
         IntBuffer intBuf = dup.asIntBuffer();
         intBuf.get(pixels);
         for (int i = 0; i < pixels.length; i++) {
@@ -47,12 +63,6 @@ public interface ByteBufCodecsExt {
             pixels[i] = (a << 24) | (r << 16) | (g << 8) | b; // 组装为 ARGB
         }
         image.setRGB(0, 0, width, height, pixels, 0, width);
-
-        // 2. 创建 RGB 图像（去掉 Alpha）
-        BufferedImage rgbImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        rgbImage.createGraphics().drawImage(image, 0, 0, null);
-        image.flush(); // 释放 ARGB 图像
-
         // 3. JPEG 编码
         ImageWriter writer = ImageIO.getImageWritersByFormatName("jpeg").next();
         ImageWriteParam param = writer.getDefaultWriteParam();
@@ -62,16 +72,17 @@ public interface ByteBufCodecsExt {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (ImageOutputStream ios = ImageIO.createImageOutputStream(baos)) {
             writer.setOutput(ios);
-            writer.write(null, new IIOImage(rgbImage, null, null), param);
+            writer.write(null, new IIOImage(image, null, null), param);
         } finally {
             writer.dispose();
-            rgbImage.flush();
+            image.flush();
         }
 
         // 4. 包装为 ByteBuffer（堆内存）
         return ByteBuffer.wrap(baos.toByteArray());
     }
-    public static ByteBuffer decompressToDirect(ByteBuffer jpegBuffer) throws IOException {
+
+    static ByteBuffer decompressToDirect(ByteBuffer jpegBuffer) throws IOException {
         // 1. 读取 JPEG 字节
         byte[] jpegBytes;
         if (jpegBuffer.hasArray()) {
@@ -90,16 +101,18 @@ public interface ByteBufCodecsExt {
         int width = image.getWidth();
         int height = image.getHeight();
 
-        // 3. 转换为 ARGB 并获取像素
-        BufferedImage argbImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = argbImage.createGraphics();
-        g.drawImage(image, 0, 0, null);
-        g.dispose();
-        image.flush();
+        int[] pixels;
+        long l = (long)width << 32 | height;
 
-        int[] pixels = new int[width * height];
-        argbImage.getRGB(0, 0, width, height, pixels, 0, width);
-        argbImage.flush();
+        if (imageBuffers2.containsKey(l))
+        {
+            pixels = imageBuffers2.get(l);
+        }
+        else {
+            pixels = new int[width * height];
+        }
+        image.getRGB(0, 0, width, height, pixels, 0, width);
+        image.flush();
 
         // 4. 转换为 RGBA
         for (int i = 0; i < pixels.length; i++) {

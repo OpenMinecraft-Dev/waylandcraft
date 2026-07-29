@@ -90,7 +90,7 @@ public class WaylandCraftNetworking {
     public static void broadcastAllExcept(PlayerList list, ServerPlayer player, CustomPacketPayload payload) {
         var l = (IPlayerListMixin) list;
         for (var p : l.players()) {
-            if (p != player || true) {
+            if (p != player) {
                 ServerPlayNetworking.send(p, payload);
             }
         }

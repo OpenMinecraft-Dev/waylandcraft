@@ -24,6 +24,10 @@ public class RemoteWindowManager {
     public static void handleUpdate(GameProfile profile, long handle, int x, int y, int w, int h, int windowWidth, int windowHeight, ByteBuffer data) {
         var win = windows.stream().filter(a -> a.profile.name().equals(profile.name())).filter(a -> a.handle == handle).findFirst();
 
+        if (windowWidth == 0 || windowHeight == 0) {
+            return;
+        }
+
         if (win.isEmpty()) {
             win = Optional.of(new RemoteWindow(profile, handle, new DynamicTexture("remotetexture-" + handle + "-" + profile.name(), windowWidth, windowHeight, false)));
             windows.add(win.get());
@@ -31,12 +35,12 @@ public class RemoteWindowManager {
         else {
             var winh = win.get();
 
-            if (winh.texture.getPixels().getWidth() != windowWidth || winh.texture.getPixels().getHeight() != windowHeight) {
+            if (winh.texture.getPixels().getWidth() != w || winh.texture.getPixels().getHeight() != h) {
                 winh.resize(windowWidth, windowHeight);
             }
         }
 
-        RenderSystem.getDevice().createCommandEncoder().writeToTexture(win.get().texture.getTexture(), data, NativeImage.Format.RGBA, 0, 0, x, y, w, h);
+        RenderSystem.getDevice().createCommandEncoder().writeToTexture(win.get().texture.getTexture(), data, NativeImage.Format.RGBA, 0, 0, 0, 0, w, h);
     }
 
     public static void handleTitleUpdate(GameProfile profile, long handle, String name) {

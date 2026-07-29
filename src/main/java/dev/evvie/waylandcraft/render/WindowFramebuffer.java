@@ -218,13 +218,13 @@ profiler.push("temp_target");
                         if (System.currentTimeMillis() - lastUpdate >= WaylandCraft.instance.settings.getRemoteUpdateInterval()) {
                             var buff = fetchUpdatedArea(surfaceTree, ((GlTexture) element.textureView.texture()).glId(), 0, 0, surfaceTree.width(), surfaceTree.height());
                             if (buff.remaining() > 0 && Minecraft.getInstance().getConnection() != null) {
-                                CompletableFuture.runAsync(() -> {
+                                Thread.ofVirtual().factory().newThread(() -> {
                                     try {
-                                        ClientPlayNetworking.send(new ServerboundFrameUpdatePayload(window.getHandle(), (int) element.x, (int) element.y, (int) element.w, (int) element.h, ByteBufCodecsExt.compressToJpeg(buff, (int) element.w, (int) element.h, 0.5f), width, height));
+                                        ClientPlayNetworking.send(new ServerboundFrameUpdatePayload(window.getHandle(), (int) element.x, (int) element.y, (int) element.w, (int) element.h, ByteBufCodecsExt.compressToJpeg(buff, (int) element.w, (int) element.h, 0.5f, window.getHandle()), width, height));
                                     } catch (IOException e) {
                                         throw new RuntimeException(e);
                                     }
-                                });
+                                }).start();
                             }
 
                             lastUpdate = System.currentTimeMillis();
